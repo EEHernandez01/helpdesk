@@ -1,22 +1,14 @@
-
-
 <x-app-layout>
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8">
         <div class="max-w-7xl mx-auto px-4 space-y-8">
             <div class="text-center space-y-4 mb-8">
                 <h2 class="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                     Equipos de Cómputo</h2>
-                <p class="text-gray-600 text-lg">Búsqueda y gestión avanzada de equipos</p>
-                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-4">
-                    <a href="{{ route('admin.computers.create') }}"
-                        class="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl shadow hover:from-blue-700 hover:to-purple-700 transition font-semibold">
-                        <i class="fas fa-plus mr-2"></i>Agregar Equipo
-                    </a>
-                </div>
+                <p class="text-gray-600 text-lg">Búsqueda y consulta de equipos</p>
             </div>
 
             <!-- Filtros y búsqueda avanzada -->
-            <form method="GET" action="{{ route('admin.computers.index') }}"
+            <form method="GET" action="{{ route('agent.computers.index') }}"
                 class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50 border border-white/20 p-6 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div>
@@ -44,7 +36,7 @@
                             class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
                             <i class="fas fa-search mr-2"></i>Buscar
                         </button>
-                        <a href="{{ route('admin.computers.index') }}"
+                        <a href="{{ route('agent.computers.index') }}"
                             class="w-full bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition mt-2 text-center block">
                             <i class="fas fa-times mr-2"></i>Limpiar
                         </a>
@@ -79,17 +71,10 @@
                                 <td class="py-3 px-6">{{ $computer->user->name ?? '-' }}</td>
                                 <td class="py-3 px-6">
                                     <div class="flex flex-wrap gap-2">
-                                        <a href="{{ route('admin.computers.show', $computer->id) }}"
+                                        <a href="{{ route('agent.computers.show', $computer->id) }}"
                                             class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-xl hover:from-blue-600 hover:to-purple-700 transition text-xs font-semibold">Ver</a>
-                                        <a href="{{ route('admin.computers.edit', $computer->id) }}"
+                                        <a href="{{ route('agent.computers.edit', $computer->id) }}"
                                             class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-3 py-1 rounded-xl hover:from-yellow-600 hover:to-yellow-700 transition text-xs font-semibold">Editar</a>
-                                        <form action="{{ route('admin.computers.destroy', $computer->id) }}" method="POST"
-                                            onsubmit="return confirm('¿Eliminar equipo?');" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-xl hover:from-red-600 hover:to-red-700 transition text-xs font-semibold">Eliminar</button>
-                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -102,39 +87,81 @@
                 </table>
             </div>
 
-            <!-- Paginación personalizada -->
-            <div class="mt-8 flex justify-center">
-                <div class="inline-flex space-x-2 bg-white/80 backdrop-blur-sm rounded-xl shadow border border-gray-200 px-4 py-2">
-                    @if ($computers->onFirstPage())
-                        <span class="px-3 py-2 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
-                            <i class="fas fa-angle-left"></i>
-                        </span>
-                    @else
-                        <a href="{{ $computers->previousPageUrl() }}" class="px-3 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
-                    @endif
+            <!-- Paginación -->
+            @if($computers->hasPages())
+                <div class="mt-8 flex justify-center">
+                    <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow px-4 py-3 flex items-center justify-between border border-gray-200 sm:px-6">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            @if ($computers->previousPageUrl())
+                                <a href="{{ $computers->previousPageUrl() }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Anterior
+                                </a>
+                            @endif
+                            @if ($computers->nextPageUrl())
+                                <a href="{{ $computers->nextPageUrl() }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Siguiente
+                                </a>
+                            @endif
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Mostrando
+                                    <span class="font-medium">{{ $computers->firstItem() }}</span>
+                                    a
+                                    <span class="font-medium">{{ $computers->lastItem() }}</span>
+                                    de
+                                    <span class="font-medium">{{ $computers->total() }}</span>
+                                    resultados
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    {{-- Botón Previous --}}
+                                    @if ($computers->onFirstPage())
+                                        <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
+                                            <span class="sr-only">Previous</span>
+                                            <i class="fas fa-chevron-left w-5 h-5"></i>
+                                        </span>
+                                    @else
+                                        <a href="{{ $computers->previousPageUrl() }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Previous</span>
+                                            <i class="fas fa-chevron-left w-5 h-5"></i>
+                                        </a>
+                                    @endif
 
-                    @foreach ($computers->getUrlRange(1, $computers->lastPage()) as $page => $url)
-                        @if ($page == $computers->currentPage())
-                            <span class="px-3 py-2 rounded-lg bg-blue-600 text-white font-bold shadow">{{ $page }}</span>
-                        @else
-                            <a href="{{ $url }}" class="px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-blue-100 transition">{{ $page }}</a>
-                        @endif
-                    @endforeach
+                                    {{-- Números de página --}}
+                                    @foreach ($computers->getUrlRange(max($computers->currentPage() - 2, 1), min($computers->currentPage() + 2, $computers->lastPage())) as $page => $url)
+                                        @if ($page == $computers->currentPage())
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                {{ $page }}
+                                            </span>
+                                        @else
+                                            <a href="{{ $url }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                {{ $page }}
+                                            </a>
+                                        @endif
+                                    @endforeach
 
-                    @if ($computers->hasMorePages())
-                        <a href="{{ $computers->nextPageUrl() }}" class="px-3 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 transition">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    @else
-                        <span class="px-3 py-2 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
-                            <i class="fas fa-angle-right"></i>
-                        </span>
-                    @endif
+                                    {{-- Botón Next --}}
+                                    @if ($computers->hasMorePages())
+                                        <a href="{{ $computers->nextPageUrl() }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Next</span>
+                                            <i class="fas fa-chevron-right w-5 h-5"></i>
+                                        </a>
+                                    @else
+                                        <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
+                                            <span class="sr-only">Next</span>
+                                            <i class="fas fa-chevron-right w-5 h-5"></i>
+                                        </span>
+                                    @endif
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
     </div>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </x-app-layout>

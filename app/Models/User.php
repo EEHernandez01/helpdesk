@@ -30,6 +30,15 @@ class User extends Authenticatable
         'is_online' => 'boolean',
     ];
 
+        // Verifica si el usuario tiene un rol específico
+        public function hasRole($role)
+        {
+            if (is_array($role)) {
+                return in_array($this->role, $role);
+            }
+            return $this->role === $role;
+        }
+
     // Relación con Department
     public function department()
     {

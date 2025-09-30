@@ -76,11 +76,11 @@
                                             @if(Auth::user()->role === 'admin')
                                             <form id="delete-form-{{ $ticket->id }}"
                                                 action="{{ route('tickets.destroy', $ticket->id) }}" method="POST"
-                                                class="inline">
+                                                onsubmit="return false;" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="button"
-                                                    onclick="confirmDelete({{ $ticket->id }}, {{ e(json_encode($ticket->title)) }})"
+                                                    onclick="confirmDelete('{{ $ticket->id }}', '{{ $ticket->title }}')"
                                                     class="text-red-600 hover:text-white bg-red-100 hover:bg-gradient-to-r hover:from-red-600 hover:to-pink-600 px-3 py-1 rounded-full transition duration-150 ease-in-out flex items-center gap-1 shadow">
                                                     <i class="fas fa-trash"></i> Eliminar
                                                 </button>
@@ -133,16 +133,26 @@
             currentTicketId = ticketId;
             ticketTitle.textContent = title;
             modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+        }
+
+        function submitDeleteForm(ticketId) {
+            const form = document.getElementById('delete-form-' + ticketId);
+            if (form) {
+                form.onsubmit = null; // Remove the return false
+                form.submit();
+            }
         }
 
         cancelBtn.addEventListener('click', function() {
             modal.classList.add('hidden');
+            modal.style.display = 'none';
             currentTicketId = null;
         });
 
         confirmBtn.addEventListener('click', function() {
             if (currentTicketId) {
-                document.getElementById('delete-form-' + currentTicketId).submit();
+                submitDeleteForm(currentTicketId);
             }
         });
 
@@ -150,6 +160,7 @@
         window.addEventListener('click', function(event) {
             if (event.target === modal) {
                 modal.classList.add('hidden');
+                modal.style.display = 'none';
                 currentTicketId = null;
             }
         });

@@ -8,9 +8,42 @@ use Illuminate\Http\Request;
 
 class ComputerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $computers = Computer::all(); // o filtrado según agente
+        $query = Computer::query();
+
+        // Filtros de búsqueda
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('computer_name', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('processor')) {
+            $query->where('processor', 'like', "%{$request->processor}%");
+        }
+
+        // Búsqueda por empresa
+        if ($request->filled('company')) {
+            $query->whereHas('company', function($q) use ($request) {
+                $q->where('nombre', 'like', "%{$request->company}%");
+            });
+        }
+
+        // Búsqueda por departamento
+        if ($request->filled('department')) {
+            $query->whereHas('department', function($q) use ($request) {
+                $q->where('name', 'like', "%{$request->department}%");
+            });
+        }
+
+        $computers = $query->with(['company', 'department', 'user'])
+                          ->orderBy('computer_name')
+                          ->paginate(10)
+                          ->withQueryString();
+
         return view('agent.computers.index', compact('computers'));
     }
 

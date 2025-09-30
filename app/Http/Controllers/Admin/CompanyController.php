@@ -50,9 +50,14 @@ class CompanyController extends Controller
             'email' => 'nullable|email|max:255',
             'telefono' => 'nullable|string|max:20',
             'rfc' => 'nullable|string|max:13',
+            'activo' => 'boolean',
         ]);
 
+        // Preparar los datos para la actualización
         $data = $request->except(['logo', 'favicon']);
+
+        // Manejar el checkbox de activo (será 0 si no está marcado, 1 si está marcado)
+        $data['activo'] = $request->has('activo') ? 1 : 0;
 
         // Manejar la subida del logo
         if ($request->hasFile('logo')) {

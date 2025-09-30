@@ -15,10 +15,24 @@ class TicketController extends Controller
     // Mostrar solo los tickets del usuario autenticado
     public function index()
     {
-        $tickets = Ticket::with('creator', 'assignedTo', 'department', 'category')
-            ->where('created_by', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Ticket::with('creator', 'assignedTo', 'department', 'category');
+
+        // Filtrar según el rol del usuario
+        if (Auth::user()->role === 'admin') {
+            // Administradores ven todos los tickets
+            $tickets = $query;
+        } elseif (Auth::user()->role === 'agent') {
+            // Agentes ven tickets asignados a ellos y los que han creado
+            $tickets = $query->where(function($q) {
+                $q->where('assigned_to', Auth::id())
+                  ->orWhere('created_by', Auth::id());
+            });
+        } else {
+            // Usuarios normales solo ven sus tickets creados
+            $tickets = $query->where('created_by', Auth::id());
+        }
+
+        $tickets = $tickets->orderBy('created_at', 'desc')->get();
         return view('tickets.index', compact('tickets'));
     }
 
@@ -89,8 +103,15 @@ class TicketController extends Controller
     {
         $ticket = Ticket::with('creator', 'assignedTo', 'department', 'category')->findOrFail($id);
 
-        // Verificar que el usuario solo pueda ver tickets que creó, a menos que sea admin o agente
-        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'agent' && $ticket->created_by !== Auth::id()) {
+        // Admin y agentes pueden ver todos los tickets
+        if (Auth::user()->role === 'admin' || Auth::user()->role === 'agent') {
+            // No necesita verificación
+        }
+        // Usuario normal solo puede ver sus propios tickets
+        elseif ($ticket->created_by == Auth::id()) {
+            // Permitido
+        }
+        else {
             abort(403, 'No tienes permiso para ver este ticket.');
         }
 
@@ -102,10 +123,22 @@ class TicketController extends Controller
     {
         $ticket = Ticket::findOrFail($id);
 
-        // Verificar que el usuario solo pueda editar tickets que creó, a menos que sea admin o agente
-        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'agent' && $ticket->created_by !== Auth::id()) {
+        // Admin puede editar todos los tickets
+        if (Auth::user()->role === 'admin') {
+            // No necesita verificación
+        }
+        // Agente puede editar tickets asignados a él o que él creó
+        elseif (Auth::user()->role === 'agent' && ($ticket->assigned_to === Auth::id() || $ticket->created_by === Auth::id())) {
+            // Permitido
+        }
+        // Usuario normal solo puede editar sus propios tickets si están en estado "nuevo"
+        elseif ($ticket->created_by === Auth::id() && $ticket->status === 'nuevo') {
+            // Permitido
+        }
+        else {
             abort(403, 'No tienes permiso para editar este ticket.');
         }
+
         $departments = Department::all();
         $categories = Category::all();
         return view('tickets.edit', compact('ticket', 'departments', 'categories'));
@@ -130,8 +163,19 @@ class TicketController extends Controller
 
         $ticket = Ticket::findOrFail($id);
 
-        // Verificar que el usuario solo pueda actualizar tickets que creó, a menos que sea admin o agente
-        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'agent' && $ticket->created_by !== Auth::id()) {
+        // Admin puede actualizar todos los tickets
+        if (Auth::user()->role === 'admin') {
+            // No necesita verificación
+        }
+        // Agente puede actualizar tickets asignados a él o que él creó
+        elseif (Auth::user()->role === 'agent' && ($ticket->assigned_to === Auth::id() || $ticket->created_by === Auth::id())) {
+            // Permitido
+        }
+        // Usuario normal solo puede actualizar sus propios tickets si están en estado "nuevo"
+        elseif ($ticket->created_by === Auth::id() && $ticket->status === 'nuevo') {
+            // Permitido
+        }
+        else {
             abort(403, 'No tienes permiso para actualizar este ticket.');
         }
 
@@ -185,7 +229,19 @@ class TicketController extends Controller
     {
         $ticket = Ticket::findOrFail($id);
 
-        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'agent' && $ticket->created_by !== Auth::id()) {
+        // Admin puede eliminar cualquier ticket
+        if (Auth::user()->role === 'admin') {
+            // Permitido
+        }
+        // Agente puede eliminar tickets que él creó o que tiene asignados
+        elseif (Auth::user()->role === 'agent' && ($ticket->assigned_to === Auth::id() || $ticket->created_by === Auth::id())) {
+            // Permitido
+        }
+        // Usuario normal solo puede eliminar sus propios tickets en estado "nuevo"
+        elseif ($ticket->created_by === Auth::id() && $ticket->status === 'nuevo') {
+            // Permitido
+        }
+        else {
             abort(403, 'No tienes permiso para eliminar este ticket.');
         }
 
@@ -217,6 +273,30 @@ class TicketController extends Controller
 
         return redirect()
             ->route('agent.tickets.show', $ticket)
+            ->with('success', 'Ticket asignado correctamente.');
+    }
+
+    // Asignar ticket a un agente específico
+    public function assign(Request $request, $id)
+    {
+        $ticket = Ticket::findOrFail($id);
+
+        // Verificar si el usuario es administrador
+        if (Auth::user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para asignar tickets.');
+        }
+
+        $request->validate([
+            'agent_id' => 'required|exists:users,id'
+        ]);
+
+        $ticket->update([
+            'assigned_to' => $request->agent_id,
+            'status' => 'en progreso'
+        ]);
+
+        return redirect()
+            ->route('tickets.show', $ticket)
             ->with('success', 'Ticket asignado correctamente.');
     }
 }

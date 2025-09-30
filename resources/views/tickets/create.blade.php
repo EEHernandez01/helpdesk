@@ -74,9 +74,12 @@
                                 <select name="department_id" id="department_id"
                                     class="block w-full rounded-xl border-2 border-gray-200 px-4 py-2 text-gray-800 transition-all duration-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 focus:outline-none hover:border-gray-300 cursor-pointer">
                                     <option value="">Seleccionar departamento...</option>
+                                    @php
+                                        $userDept = auth()->user()->department_id ?? null;
+                                    @endphp
                                     @foreach ($departments as $department)
                                     <option value="{{ $department->id }}"
-                                        {{ old('department_id') == $department->id ? 'selected' : '' }}>
+                                        {{ old('department_id', $userDept) == $department->id ? 'selected' : '' }}>
                                         {{ $department->name }}
                                     </option>
                                     @endforeach
@@ -157,10 +160,13 @@
     </div>
     <!-- Script para previsualización de archivos -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
             const dragDropArea = document.getElementById('drag-drop-area');
             const attachmentsInput = document.getElementById('attachments');
             const preview = document.getElementById('file-preview');
+
+            // Lista global de archivos seleccionados
+            let selectedFiles = [];
 
             // Hacer que el área de arrastre acepte archivos
             dragDropArea.addEventListener('dragover', function(event) {
@@ -176,56 +182,51 @@
                 event.preventDefault();
                 dragDropArea.classList.remove('bg-gray-100');
 
-                // Obtener la lista de archivos
-                const files = event.dataTransfer.files;
-                console.log('Archivos recibidos por drop:', files.length); // Depuración
-
-                // Crear nuevo DataTransfer para manejar los archivos
-                const dataTransfer = new DataTransfer();
-
-                // Primero añadir cualquier archivo existente en el input
-                if (attachmentsInput.files) {
-                    console.log('Archivos existentes en input:', attachmentsInput.files.length); // Depuración
-                    Array.from(attachmentsInput.files).forEach(file => {
-                        dataTransfer.items.add(file);
-                    });
-                }
-
-                // Luego añadir los nuevos archivos
+                const files = Array.from(event.dataTransfer.files);
                 let validFilesCount = 0;
-                Array.from(files).forEach(file => {
+                files.forEach(file => {
                     if (isValidFileType(file)) {
-                        dataTransfer.items.add(file);
-                        validFilesCount++;
+                        // Evitar duplicados por nombre y tamaño
+                        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                            selectedFiles.push(file);
+                            validFilesCount++;
+                        }
                     } else {
                         alert(`El archivo "${file.name}" no es un tipo permitido. Solo se aceptan PNG, JPG y PDF.`);
                     }
                 });
-                console.log('Archivos válidos agregados:', validFilesCount); // Depuración
-
-                // Actualizar el input con todos los archivos
-                attachmentsInput.files = dataTransfer.files;
-                console.log('Total de archivos ahora en input:', attachmentsInput.files.length); // Depuración
-
-                // Actualizar la previsualización
+                updateInputFiles();
                 updatePreview();
             });
 
-            // Cuando se seleccionan archivos por el input
             attachmentsInput.addEventListener('change', function(e) {
-                console.log('Archivos seleccionados a través del input:', attachmentsInput.files.length); // Depuración
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    if (isValidFileType(file)) {
+                        // Evitar duplicados por nombre y tamaño
+                        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                            selectedFiles.push(file);
+                        }
+                    } else {
+                        alert(`El archivo "${file.name}" no es un tipo permitido. Solo se aceptan PNG, JPG y PDF.`);
+                    }
+                });
+                updateInputFiles();
                 updatePreview();
             });
+
+            function updateInputFiles() {
+                const dataTransfer = new DataTransfer();
+                selectedFiles.forEach(file => dataTransfer.items.add(file));
+                attachmentsInput.files = dataTransfer.files;
+            }
 
             // Función para actualizar la previsualización basada en los archivos seleccionados
             function updatePreview() {
                 // Limpiar previsualización existente
                 preview.innerHTML = '';
-
-                if (attachmentsInput.files && attachmentsInput.files.length > 0) {
-                    console.log('Actualizando vista previa con', attachmentsInput.files.length, 'archivos'); // Depuración
-
-                    Array.from(attachmentsInput.files).forEach((file, index) => {
+                if (selectedFiles.length > 0) {
+                    selectedFiles.forEach((file, index) => {
                         const fileDiv = document.createElement('div');
                         fileDiv.className = 'p-2 border rounded-md flex items-center';
 
@@ -236,7 +237,6 @@
                             const img = document.createElement('img');
                             img.className = 'w-6 h-6 mr-2 object-cover';
                             img.file = file;
-
                             const reader = new FileReader();
                             reader.onload = (function(aImg) {
                                 return function(e) {
@@ -244,7 +244,6 @@
                                 };
                             })(img);
                             reader.readAsDataURL(file);
-
                             fileDiv.appendChild(img);
                         } else if (file.type === 'application/pdf') {
                             icon = `<svg class="w-6 h-6 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2v6h6"></path></svg>`;
@@ -271,28 +270,15 @@
                         removeBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
                         removeBtn.type = 'button';
                         removeBtn.onclick = function() {
-                            console.log('Eliminando archivo en índice', index); // Depuración
-
-                            // Eliminar archivo del input
-                            const dataTransfer = new DataTransfer();
-                            const newFiles = Array.from(attachmentsInput.files)
-                                .filter((_, i) => i !== index);
-
-                            console.log('Archivos restantes después de eliminar:', newFiles.length); // Depuración
-
-                            newFiles.forEach(file => dataTransfer.items.add(file));
-                            attachmentsInput.files = dataTransfer.files;
-
-                            // Actualizar previsualización
+                            // Eliminar archivo de la lista global
+                            selectedFiles.splice(index, 1);
+                            updateInputFiles();
                             updatePreview();
                         };
                         fileDiv.appendChild(removeBtn);
 
-                        // Añadir la vista previa del archivo a la lista
                         preview.appendChild(fileDiv);
                     });
-                } else {
-                    console.log('No hay archivos para mostrar en vista previa');
                 }
             }
 
@@ -317,11 +303,10 @@
 
             // Verificar que el elemento input tenga el atributo multiple
             if (!attachmentsInput.hasAttribute('multiple')) {
-                console.warn('El input de archivos no tiene el atributo multiple. Añadiéndolo...');
                 attachmentsInput.setAttribute('multiple', '');
             }
-
-            console.log('Script de subida de archivos inicializado correctamente');
+            // Mostrar la previsualización inicial si hay archivos
+            updatePreview();
         });
     </script>
 </x-app-layout>

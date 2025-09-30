@@ -19,7 +19,7 @@ class TicketCommentController extends Controller
 
         $request->validate([
             'content' => 'required|string',
-            'attachments.*' => 'nullable|file|max:10240', // 10MB max por archivo
+            'attachments.*' => 'nullable|file|max:10240',
         ]);
 
             // Registrar acción en el historial

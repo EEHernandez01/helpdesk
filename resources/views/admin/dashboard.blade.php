@@ -41,6 +41,10 @@
 
             <!-- Accesos rápidos para administrador -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="{{ route('admin.help.review') }}" class="flex items-center gap-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-2xl shadow-lg hover:from-purple-700 hover:to-indigo-700 transition">
+                    <i class="fas fa-clipboard-check text-2xl"></i>
+                    <span class="font-semibold text-lg">Revisar entradas de ayuda</span>
+                </a>
                 <a href="{{ route('admin.users.index') }}" class="flex items-center gap-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-2xl shadow-lg hover:from-blue-700 hover:to-purple-700 transition">
                     <i class="fas fa-users text-2xl"></i>
                     <span class="font-semibold text-lg">Gestionar Usuarios</span>
@@ -102,9 +106,10 @@
                         <span class="text-sm font-semibold">Mantenimiento</span>
                     </a>
                     <a href="#" class="flex flex-col items-center justify-center min-w-[140px] bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-4 rounded-xl shadow hover:from-indigo-600 hover:to-indigo-800 transition">
-                        <i class="fas fa-book text-2xl mb-2"></i>
-                        <span class="text-sm font-semibold">Base de conocimiento</span>
-                    </a>
+                        <a href="{{ route('help.index') }}" class="flex flex-col items-center justify-center min-w-[140px] bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-4 rounded-xl shadow hover:from-indigo-600 hover:to-indigo-800 transition">
+                            <i class="fas fa-book text-2xl mb-2"></i>
+                            <span class="text-sm font-semibold">Centro de Ayuda</span>
+                        </a>
                     <a href="#" class="flex flex-col items-center justify-center min-w-[140px] bg-gradient-to-r from-pink-600 to-purple-700 text-white p-4 rounded-xl shadow hover:from-pink-700 hover:to-purple-800 transition">
                         <i class="fas fa-user-shield text-2xl mb-2"></i>
                         <span class="text-sm font-semibold">Roles y permisos</span>

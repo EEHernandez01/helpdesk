@@ -295,6 +295,27 @@
                         </h3>
 
                         <div class="space-y-3">
+                            <!-- Asignación de ticket (solo para administradores) -->
+                            @if(auth()->user()->role === 'admin' && (!$ticket->assignedTo || $ticket->status !== 'cerrado'))
+                                <div class="p-4 bg-gray-50 rounded-xl">
+                                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Asignar ticket a:</h4>
+                                    <form action="{{ route('tickets.assign', $ticket) }}" method="POST" class="space-y-3">
+                                        @csrf
+                                        <select name="agent_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <option value="">Seleccionar agente...</option>
+                                            @foreach(\App\Models\User::where('role', 'agent')->orderBy('name')->get() as $agent)
+                                                <option value="{{ $agent->id }}" {{ $ticket->assigned_to == $agent->id ? 'selected' : '' }}>
+                                                    {{ $agent->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 transition">
+                                            <i class="fas fa-user-plus mr-2"></i>Asignar
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+
                             <a href="{{ route('tickets.create') }}" class="flex items-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition">
                                 <i class="fas fa-plus"></i>
                                 Nuevo Ticket

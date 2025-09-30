@@ -18,7 +18,7 @@
                     <form action="{{ route('agent.tickets.release', $ticket) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-red-500 text-white hover:bg-red-600 transition shadow-lg"
-                                onclick="return confirm('¿Estás seguro de que quieres liberar este ticket?')">
+                            onclick="return confirm('¿Estás seguro de que quieres liberar este ticket?')">
                             <i class="fas fa-unlock"></i> Liberar Ticket
                         </button>
                     </form>
@@ -83,7 +83,7 @@
                                         <option value="">Selecciona...</option>
                                         @for($i=1; $i<=5; $i++)
                                             <option value="{{ $i }}">{{ $i }} estrella{{ $i > 1 ? 's' : '' }}</option>
-                                        @endfor
+                                            @endfor
                                     </select>
                                 </div>
                                 <div>
@@ -102,7 +102,7 @@
                             @csrf
                             <div class="space-y-3">
                                 <textarea name="content" rows="3" placeholder="Escribe un comentario..."
-                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
                                 <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
                                     <i class="fas fa-paper-plane mr-2"></i>Agregar Comentario
                                 </button>
@@ -116,20 +116,20 @@
                                 Historial de acciones
                             </h3>
                             @if(isset($actions) && $actions->count())
-                                <ul class="space-y-2">
-                                    @foreach($actions as $action)
-                                        <li class="border-l-4 border-purple-400 pl-4 py-2">
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="font-semibold text-gray-700">{{ $action->user->username ?? 'Usuario' }}</span>
-                                                <span class="text-xs text-gray-500">{{ $action->created_at->diffForHumans() }}</span>
-                                            </div>
-                                            <span class="text-gray-600">{{ ucfirst($action->action_type) }}:</span>
-                                            <span class="text-gray-800">{{ $action->description }}</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
+                            <ul class="space-y-2">
+                                @foreach($actions as $action)
+                                <li class="border-l-4 border-purple-400 pl-4 py-2">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-gray-700">{{ $action->user->username ?? 'Usuario' }}</span>
+                                        <span class="text-xs text-gray-500">{{ $action->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <span class="text-gray-600">{{ ucfirst($action->action_type) }}:</span>
+                                    <span class="text-gray-800">{{ $action->description }}</span>
+                                </li>
+                                @endforeach
+                            </ul>
                             @else
-                                <p class="text-gray-500 italic">No hay acciones registradas aún.</p>
+                            <p class="text-gray-500 italic">No hay acciones registradas aún.</p>
                             @endif
                         </div>
                     </div>
@@ -161,7 +161,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Notas de Resolución</label>
                                 <textarea name="resolution_notes" rows="4" placeholder="Agrega notas sobre la resolución..."
-                                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">{{ $ticket->resolution_notes }}</textarea>
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">{{ $ticket->resolution_notes }}</textarea>
                             </div>
 
                             <button type="submit" class="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold">
@@ -201,7 +201,21 @@
 
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">Creado por:</span>
-                                <span class="text-gray-800">{{ $ticket->creator->username ?? 'Usuario' }}</span>
+                                @if($ticket->creator)
+                                @if(auth()->user()->role === 'admin')
+                                    <a href="{{ route('admin.users.show', $ticket->creator->id) }}" class="text-blue-700 font-medium hover:underline">
+                                        {{ $ticket->creator->username }}
+                                    </a>
+                                @elseif(auth()->user()->role === 'agent')
+                                    <a href="{{ route('agent.users.show', $ticket->creator->id) }}" class="text-blue-700 font-medium hover:underline">
+                                        {{ $ticket->creator->username }}
+                                    </a>
+                                @else
+                                    <span class="text-gray-700 font-medium">{{ $ticket->creator->username }}</span>
+                                @endif
+                                @else
+                                <span class="text-gray-800 font-medium">Usuario</span>
+                                @endif
                             </div>
 
                             <div class="flex justify-between items-center">

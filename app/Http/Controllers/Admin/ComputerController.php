@@ -8,9 +8,18 @@ use App\Models\Computer;
 
 class ComputerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $computers = Computer::all();
+        $query = Computer::query();
+        // Filtros básicos
+        if ($request->filled('search')) {
+            $query->where('computer_name', 'like', '%'.$request->search.'%')
+                  ->orWhere('serial_number', 'like', '%'.$request->search.'%');
+        }
+        if ($request->filled('model')) {
+            $query->where('model', 'like', '%'.$request->model.'%');
+        }
+        $computers = $query->with(['user', 'department'])->paginate(20);
         return view('admin.computers.index', compact('computers'));
     }
 

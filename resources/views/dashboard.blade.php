@@ -48,9 +48,10 @@
                     </a>
                 </div>
 
-                <!-- Centro de ayuda -->
+                <!-- Centro de ayuda (visible solo para admin y agentes) -->
+                @if(auth()->user()->role === 'admin' || auth()->user()->role === 'agent')
                 <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                    <a href="#" class="block p-6">
+                    <a href="{{ route('help.index') }}" class="block p-6">
                         <div class="flex items-center">
                             <div class="bg-gradient-to-br from-purple-500 to-purple-600 p-4 rounded-xl shadow-lg">
                                 <i class="fas fa-question-circle text-2xl text-white"></i>
@@ -62,6 +63,7 @@
                         </div>
                     </a>
                 </div>
+                @endif
             </div>
 
             <!-- Estado del sistema y contacto -->
@@ -94,7 +96,7 @@
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Email</p>
-                                <p class="font-semibold text-gray-800">soporte@genbio.com.mx</p>
+                                <p class="font-semibold text-gray-800">soporte.ti@genbio.com.mx</p>
                             </div>
                         </div>
                     </div>

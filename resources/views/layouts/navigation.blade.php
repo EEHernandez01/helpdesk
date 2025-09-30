@@ -14,36 +14,32 @@
                 Dashboard
             </x-nav-link>
             @if(Auth::user()->role === 'admin')
-            <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
-                Tickets
-            </x-nav-link>
-            <x-nav-link :href="route('admin.computers.index')" :active="request()->routeIs('computers.*')">
-                Equipos
-            </x-nav-link>
-            <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
-                Usuarios
-            </x-nav-link>
-            <x-nav-link :href="route('admin.companies.index')" :active="request()->routeIs('admin.companies.*')">
-                Empresas
-            </x-nav-link>
-            {{-- <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
-                    Categorías
-                </x-nav-link> --}}
-
-            {{-- <x-nav-link :href="route('admin.stats.index')" :active="request()->routeIs('admin.stats.*')">
-                    Estadísticas
-                </x-nav-link> --}}
+                <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
+                    Tickets
+                </x-nav-link>
+                <x-nav-link :href="route('admin.computers.index')" :active="request()->routeIs('admin.computers.*')">
+                    Equipos
+                </x-nav-link>
+                <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                    Usuarios
+                </x-nav-link>
+                <x-nav-link :href="route('admin.companies.index')" :active="request()->routeIs('admin.companies.*')">
+                    Empresas
+                </x-nav-link>
             @elseif(Auth::user()->role === 'agent')
-            <x-nav-link :href="route('agent.tickets.index')" :active="request()->routeIs('agent.tickets.*')">
-                Mis Tickets
-            </x-nav-link>
-            <x-nav-link :href="route('admin.computers.index')" :active="request()->routeIs('admin.computers.*')">
-                Equipos
-            </x-nav-link>
+                <x-nav-link :href="route('agent.tickets.index')" :active="request()->routeIs('agent.tickets.*')">
+                    Mis Tickets
+                </x-nav-link>
+                <x-nav-link :href="route('agent.computers.index')" :active="request()->routeIs('agent.computers.*')">
+                    Equipos
+                </x-nav-link>
+                <x-nav-link :href="route('agent.users.index')" :active="request()->routeIs('agent.users.*')">
+                    Usuarios
+                </x-nav-link>
             @else
-            <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
-                Mis Tickets
-            </x-nav-link>
+                <x-nav-link :href="route('tickets.index')" :active="request()->routeIs('tickets.*')">
+                    Mis Tickets
+                </x-nav-link>
             @endif
         </div>
         <!-- Usuario -->

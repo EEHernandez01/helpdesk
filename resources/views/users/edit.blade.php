@@ -64,7 +64,7 @@
                     </h2>
                 </div>
 
-                <form action="{{ route('admin.users.update', $user) }}" method="POST" class="p-8">
+                <form action="{{ auth()->user()->role === 'admin' ? route('admin.users.update', $user) : route('agent.users.update', $user) }}" method="POST" class="p-8">
                     @csrf
                     @method('PUT')
 
@@ -219,14 +219,14 @@
                                 </span>
                             </div>
 
-                            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50 border border-white/20 p-6">
+                            <div class="group">
                                 <p class="text-sm text-gray-600 mb-3 flex items-center gap-2">
                                     <i class="fas fa-info-circle text-purple-500"></i>
                                     Selecciona uno o varios equipos asignados al usuario.
                                 </p>
 
                                 <select id="computers" name="computers[]" multiple
-                                    class="block w-full rounded-xl border-2 border-gray-200 px-4 py-3 text-gray-800 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 hover:border-gray-300 cursor-pointer">
+                                    class="block w-full rounded-xl border-2  text-gray-800 placeholder-gray-400 transition-all duration-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 hover:border-gray-300 cursor-pointer">
                                     @foreach($computers as $computer)
                                     <option value="{{ $computer->id }}"
                                         @if(collect(old('computers', $user->pc->pluck('id') ?? []))->contains($computer->id)) selected @endif>
@@ -268,8 +268,8 @@
                                     <option value="agent" @if(old('role', $user->role) === 'agent') selected @endif class="text-orange-600 font-medium">
                                         🟡 Agente - Gestión y supervisión
                                     </option>
-                                    <option value="user" @if(old('role', $user->role) === 'user') selected @endif class="text-green-600 font-medium">
-                                        🟢 Usuario - Acceso básico
+                                    <option value="employee" @if(old('role', $user->role) === 'employee') selected @endif class="text-green-600 font-medium">
+                                        🟢 Empleado - Acceso básico
                                     </option>
                                 </select>
                                 @error('role')
@@ -336,7 +336,7 @@
 
                         {{-- Botones --}}
                         <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
-                            <a href="{{ route('admin.users.index') }}"
+                            <a href="{{ auth()->user()->role === 'admin' ? route('admin.users.index') : route('agent.users.index') }}"
                                 class="px-6 py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 flex items-center gap-2 shadow-sm">
                                 <i class="fas fa-arrow-left"></i>
                                 Cancelar

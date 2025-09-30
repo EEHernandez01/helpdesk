@@ -79,8 +79,8 @@
                 <a href="{{ route('agent.tickets.create-user') }}" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-indigo-500 to-indigo-700 text-white hover:from-indigo-600 hover:to-indigo-800 transition shadow-lg">
                     <i class="fas fa-user-plus"></i> Crear Ticket para Usuario
                 </a>
-                <a href="#" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-pink-500 to-pink-700 text-white hover:from-pink-600 hover:to-pink-800 transition shadow-lg">
-                    <i class="fas fa-book"></i> Base de Conocimientos
+                <a href="{{ route('help.index') }}" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-pink-500 to-pink-700 text-white hover:from-pink-600 hover:to-pink-800 transition shadow-lg">
+                    <i class="fas fa-book"></i> Centro de Ayuda
                 </a>
                 <a href="#" class="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-yellow-500 to-yellow-700 text-white hover:from-yellow-600 hover:to-yellow-800 transition shadow-lg">
                     <i class="fas fa-history"></i> Historial Resueltos

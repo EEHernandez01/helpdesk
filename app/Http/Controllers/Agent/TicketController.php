@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
@@ -29,9 +30,14 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket)
     {
-    $ticket->load('creator', 'assignedTo', 'department', 'category', 'comments.user');
-    $actions = \App\Models\TicketAction::where('ticket_id', $ticket->id)->orderBy('created_at', 'desc')->get();
-    return view('agent.tickets.show', compact('ticket', 'actions'));
+        // Permitir acceso si el usuario es admin, agente o el ticket está asignado a él
+        $user = Auth::user();
+        if ($user->role !== 'admin' && $user->role != 'agent' && $ticket->assigned_to != $user->id) {
+            abort(403, 'No tienes permiso para ver este ticket.');
+        }
+        $ticket->load('creator', 'assignedTo', 'department', 'category', 'comments.user');
+        $actions = \App\Models\TicketAction::where('ticket_id', $ticket->id)->orderBy('created_at', 'desc')->get();
+        return view('agent.tickets.show', compact('ticket', 'actions'));
     }
 
     /**
@@ -39,10 +45,10 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
-        // Verificar que el ticket esté asignado al agente actual
-       if ($ticket->assigned_to !== Auth::id()) {
-    abort(403, 'Solo puedes actualizar tickets que te han sido asignados.');
-}
+        // Verificar que el ticket esté asignado al agente actual (corrección de tipo)
+        if ((int)$ticket->assigned_to !== (int)Auth::id()) {
+            abort(403, 'Solo puedes actualizar tickets que te han sido asignados.');
+        }
 
         $request->validate([
             'status' => 'required|in:abierto,en progreso,resuelto,cerrado',
@@ -55,13 +61,13 @@ class TicketController extends Controller
             'resolved_at' => $request->status === 'resuelto' ? now() : null,
         ]);
 
-            // Registrar acción en el historial
-            \App\Models\TicketAction::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => Auth::id(),
-                'action_type' => 'estado actualizado',
-                'description' => 'Estado cambiado a ' . $request->status,
-            ]);
+        // Registrar acción en el historial
+        \App\Models\TicketAction::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'action_type' => 'estado actualizado',
+            'description' => 'Estado cambiado a ' . $request->status,
+        ]);
 
         return redirect()
             ->route('agent.tickets.show', $ticket)
@@ -99,13 +105,13 @@ class TicketController extends Controller
             'status' => 'en progreso',
         ]);
 
-            // Registrar acción en el historial
-            \App\Models\TicketAction::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => Auth::id(),
-                'action_type' => 'asignado',
-                'description' => 'Ticket asignado al agente',
-            ]);
+        // Registrar acción en el historial
+        \App\Models\TicketAction::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'action_type' => 'asignado',
+            'description' => 'Ticket asignado al agente',
+        ]);
 
         return redirect()
             ->route('agent.tickets.show', $ticket)
@@ -132,13 +138,13 @@ class TicketController extends Controller
             'status' => 'en progreso',
         ]);
 
-            // Registrar acción en el historial
-            \App\Models\TicketAction::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => Auth::id(),
-                'action_type' => 'asignado',
-                'description' => 'Ticket asignado automáticamente al agente',
-            ]);
+        // Registrar acción en el historial
+        \App\Models\TicketAction::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'action_type' => 'asignado',
+            'description' => 'Ticket asignado automáticamente al agente',
+        ]);
 
         return redirect()
             ->route('agent.tickets.show', $ticket)
@@ -151,7 +157,7 @@ class TicketController extends Controller
     public function release(Ticket $ticket)
     {
         // Verificar que el ticket esté asignado al agente actual
-        if ($ticket->assigned_to !== Auth::id()) {
+        if ($ticket->assigned_to != Auth::id()) {
             abort(403, 'No tienes acceso a este ticket.');
         }
 
@@ -160,13 +166,13 @@ class TicketController extends Controller
             'status' => 'abierto',
         ]);
 
-            // Registrar acción en el historial
-            \App\Models\TicketAction::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => Auth::id(),
-                'action_type' => 'liberado',
-                'description' => 'Ticket liberado por el agente',
-            ]);
+        // Registrar acción en el historial
+        \App\Models\TicketAction::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'action_type' => 'liberado',
+            'description' => 'Ticket liberado por el agente',
+        ]);
 
         return redirect()
             ->route('agent.tickets.index')

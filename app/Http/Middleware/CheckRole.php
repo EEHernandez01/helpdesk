@@ -18,22 +18,12 @@ class CheckRole
 
         $user = Auth::user();
 
-        // Si el usuario tiene alguno de los roles requeridos
-        foreach ($roles as $role) {
-            // Opción A: Si 'role' es el nombre del rol directamente
-            if ($user->role === $role) {
-                return $next($request);
-            }
-            
-            // Opción B: Si tienes una relación con modelo Role
-            // if ($user->role && $user->role->name === $role) {
-            //     return $next($request);
-            // }
-
-            // Opción C: Si tienes un método hasRole
-            // if ($user->hasRole($role)) {
-            //     return $next($request);
-            // }
+        // Verificar el rol directamente usando el atributo 'role', soportando múltiples roles
+        if (is_array($roles) && in_array($user->role, $roles)) {
+            return $next($request);
+        }
+        if ($user->role == $roles) {
+            return $next($request);
         }
 
         // Si no coincide ningún rol, abortamos

@@ -1,7 +1,7 @@
 <?php
 // app/Http/Controllers/Admin/UserController.php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -42,7 +42,12 @@ class UserController extends Controller
         }
 
         $users = $query->paginate(10)->appends(request()->query());
-        return view('admin.users.index', compact('users'));
+        // Redirigir a la vista correcta según el rol
+        if (auth()->user()->role === 'admin') {
+            return view('users.index', compact('users'))->with('isAdmin', true);
+        } else {
+            return view('users.index', compact('users'))->with('isAdmin', false);
+        }
     }
 
     /**
@@ -55,7 +60,7 @@ class UserController extends Controller
         $computers = Computer::all();
         $companies = Company::all();
         $departments = Department::all();
-        return view('admin.users.create', compact('computers', 'companies', 'departments'));
+    return view('users.create', compact('computers', 'companies', 'departments'));
     }
 
 
@@ -87,7 +92,7 @@ class UserController extends Controller
         $user->password = Hash::make($data['password']);
         $user->save();
 
-        return redirect()->route('admin.users.index')
+        return redirect()->route(auth()->user()->role === 'admin' ? 'admin.users.index' : 'agent.users.index')
             ->with('success', 'Usuario creado correctamente.');
     }
 
@@ -174,7 +179,7 @@ class UserController extends Controller
         // Asignar los equipos seleccionados
         $asignados = Computer::whereIn('id', $selectedComputers)
             ->update(['assigned_user_id' => $user->id]);
-        return redirect()->route('admin.users.index')
+        return redirect()->route(auth()->user()->role === 'admin' ? 'admin.users.index' : 'agent.users.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
@@ -183,8 +188,10 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'Solo el administrador puede eliminar usuarios.');
+        }
         $user->delete();
-
         return redirect()->route('admin.users.index')
             ->with('success', 'Usuario eliminado correctamente.');
     }
