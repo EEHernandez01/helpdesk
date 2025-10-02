@@ -72,6 +72,20 @@ class TicketController extends Controller
             'attachments'   => null,
         ]);
 
+        // Notificar solo a los administradores de un nuevo ticket
+        $admins = \App\Models\User::where('role', 'admin')
+                                 ->where('id', '!=', Auth::id())
+                                 ->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new \App\Notifications\NewTicketCreated($ticket));
+        }
+
+        // Notificar a los agentes disponibles
+        $agents = \App\Models\User::where('role', 'agent')->get();
+        foreach ($agents as $agent) {
+            $agent->notify(new \App\Notifications\NewTicketCreated($ticket));
+        }
+
         $attachmentPaths = [];
 
         // 2) Guardar archivos en carpeta específica del ticket
@@ -201,10 +215,15 @@ class TicketController extends Controller
             }
         }
 
+        // Guardar el estado anterior
+        $previousStatus = $ticket->status;
+
         // Si cambia a resuelto y no tiene fecha, guardarla
         if ($request->status === 'resuelto' && ! $ticket->resolved_at) {
             $ticket->resolved_at = now();
         }
+
+        $previousAssignedTo = $ticket->assigned_to;
 
         // Actualizar resto de campos
         $ticket->update([
@@ -218,6 +237,41 @@ class TicketController extends Controller
             'resolution_notes' => $request->resolution_notes,
             'attachments'      => json_encode($currentAttachments),
         ]);
+
+        // Si el estado cambió, notificar a los involucrados
+        if ($previousStatus !== $request->status) {
+            // Notificar al creador si no es quien hizo el cambio
+            if ($ticket->creator()->exists() && $ticket->created_by !== Auth::id()) {
+                $ticket->creator()->first()->notify(new \App\Notifications\TicketStatusChanged($ticket, $previousStatus));
+            }
+
+            // Notificar al agente asignado si existe y no es quien hizo el cambio
+            if ($ticket->assignedTo()->exists() && $ticket->assigned_to !== Auth::id()) {
+                $ticket->assignedTo()->first()->notify(new \App\Notifications\TicketStatusChanged($ticket, $previousStatus));
+            }
+
+            // Si el cambio lo hizo un usuario normal, notificar a los administradores
+            if (Auth::user()->role === 'user') {
+                $admins = \App\Models\User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\TicketStatusChanged($ticket, $previousStatus));
+                }
+            }
+        }
+
+        // Si se asignó a un nuevo agente
+        if ($previousAssignedTo !== $request->assigned_to && $request->assigned_to) {
+            $assignedUser = \App\Models\User::find($request->assigned_to);
+            if ($assignedUser) {
+                // Notificar al nuevo agente asignado
+                $assignedUser->notify(new \App\Notifications\TicketAssigned($ticket, $assignedUser));
+
+                // Notificar al creador si no es quien hizo la asignación
+                if ($ticket->creator()->exists() && $ticket->created_by !== Auth::id()) {
+                    $ticket->creator()->first()->notify(new \App\Notifications\TicketAssigned($ticket, $assignedUser));
+                }
+            }
+        }
 
         return redirect()
             ->route('tickets.index')

@@ -44,6 +44,9 @@
         </div>
         <!-- Usuario -->
         <div class="flex items-center space-x-3">
+            <!-- Notificaciones -->
+            <x-notification-dropdown />
+
             <x-dropdown align="right" width="48">
                 <x-slot name="trigger">
                     <button class="flex items-center focus:outline-none">

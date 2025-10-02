@@ -19,6 +19,7 @@ use App\Http\Controllers\HelpSectionController;
 use App\Http\Controllers\HelpEntryController;
 use App\Http\Controllers\TicketFeedbackController;
 use App\Http\Controllers\Agent\TicketCreateController;
+use App\Http\Controllers\NotificationController;
 
 // Redirección inicial
 Route::get('/', fn() => redirect('login'));
@@ -65,6 +66,16 @@ Route::middleware('auth')->group(function () {
     // Feedback al cerrar ticket
     Route::post('tickets/{ticket}/feedback', [TicketFeedbackController::class, 'store'])
         ->name('tickets.feedback.store');
+
+    // Notificaciones
+    Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.mark-all-read');
+    Route::post('notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.mark-read');
+    Route::delete('notifications/{id}', [NotificationController::class, 'delete'])
+        ->name('notifications.delete');
+    Route::delete('notifications', [NotificationController::class, 'deleteAll'])
+        ->name('notifications.delete-all');
 
     // Centro de ayuda (público)
     Route::get('help', [HelpEntryController::class, 'index'])->name('help.index');

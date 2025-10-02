@@ -50,6 +50,24 @@ class TicketCommentController extends Controller
         // Actualizar la fecha de actualización del ticket
         $ticket->update(['updated_at' => now()]);
 
+        // Notificar al creador del ticket si el comentario no es del creador
+        if ($ticket->created_by !== Auth::id()) {
+            $ticket->creator->notify(new \App\Notifications\NewTicketComment($ticket, $comment));
+        }
+
+        // Notificar al agente asignado si existe y no es quien comenta
+        if ($ticket->assigned_to && $ticket->assigned_to !== Auth::id()) {
+            $ticket->assignedTo->notify(new \App\Notifications\NewTicketComment($ticket, $comment));
+        }
+
+        // Si el comentario es de un usuario normal, notificar a los administradores
+        if (Auth::user()->role === 'user') {
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewTicketComment($ticket, $comment));
+            }
+        }
+
         return redirect()->back()->with('success', 'Comentario agregado correctamente.');
     }
 }
