@@ -23,7 +23,7 @@ class TicketStatusChanged extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', 'broadcast'];
     }
 
     public function toMail($notifiable)
@@ -35,15 +35,18 @@ class TicketStatusChanged extends Notification implements ShouldQueue
             'cerrado' => 'Cerrado'
         ];
 
+        $prev = $statusTranslations[$this->previousStatus] ?? ucfirst($this->previousStatus);
+        $next = $statusTranslations[$this->ticket->status] ?? ucfirst($this->ticket->status);
+
         return (new MailMessage)
             ->subject("Actualización del Ticket #{$this->ticket->id}")
-            ->greeting("Hola {$notifiable->name},")
-            ->line("Tu ticket ha sido actualizado:")
-            ->line("Título: {$this->ticket->title}")
-            ->line("Estado anterior: {$statusTranslations[$this->previousStatus]}")
-            ->line("Nuevo estado: {$statusTranslations[$this->ticket->status]}")
-            ->action('Ver Ticket', url("/tickets/{$this->ticket->id}"))
-            ->line('Si tienes alguna pregunta, no dudes en responder a este correo.');
+            ->markdown('emails.tickets.status_changed', [
+                'notifiable' => $notifiable,
+                'ticket' => $this->ticket,
+                'prev' => $prev,
+                'next' => $next,
+                'url' => url("/tickets/{$this->ticket->id}")
+            ]);
     }
 
     public function toArray($notifiable)

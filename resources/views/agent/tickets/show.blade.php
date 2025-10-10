@@ -51,19 +51,74 @@
                         </h3>
 
                         @if($ticket->comments->count() > 0)
+                        <div id="commentsContainerAgent" class="max-h-[60vh] overflow-y-auto pr-1">
                         <div class="space-y-4">
                             @foreach($ticket->comments as $comment)
-                            <div class="border-l-4 border-blue-500 pl-4 py-2">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                        {{ strtoupper(substr($comment->user->username ?? 'U', 0, 1)) }}
+                                @php($isMine = (int)($comment->user_id ?? 0) === (int)auth()->id())
+                                <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
+                                    <div class="max-w-[85%] sm:max-w-[70%]">
+                                        <div class="flex items-center gap-2 mb-1 {{ $isMine ? 'justify-end' : 'justify-start' }}">
+                                            @unless($isMine)
+                                                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                                    {{ strtoupper(substr($comment->user->username ?? 'U', 0, 1)) }}
+                                                </div>
+                                                <span class="font-semibold text-gray-700">{{ $comment->user->username ?? 'Usuario' }}</span>
+                                            @endunless
+                                            <span class="text-xs text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
+                                            @if($comment->is_internal)
+                                                <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] rounded-full">Nota interna</span>
+                                            @endif
+                                        </div>
+                                        <div class="rounded-2xl px-4 py-3 shadow-sm border {{ $isMine ? 'bg-blue-100 border-blue-200 rounded-br-sm' : 'bg-gray-100 border-gray-200 rounded-bl-sm' }}">
+                                            <p class="text-gray-800 whitespace-pre-wrap">{{ $comment->content }}</p>
+
+                                            @php
+                                                if (!function_exists('isImageFile')) {
+                                                    function isImageFile($filename) {
+                                                        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                                                        return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+                                                    }
+                                                }
+                                            @endphp
+
+                                            @if(!empty(json_decode($comment->attachments ?? '[]', true)))
+                                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Archivos adjuntos:</h4>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        @foreach(json_decode($comment->attachments, true) as $attachment)
+                                                            @if(isImageFile($attachment))
+                                                                <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200">
+                                                                    <div class="relative pb-[60%] bg-gray-100">
+                                                                        <img src="{{ Storage::url($attachment) }}"
+                                                                            alt="{{ basename($attachment) }}"
+                                                                            class="absolute inset-0 w-full h-full object-cover image-thumbnail cursor-pointer"
+                                                                            data-src="{{ Storage::url($attachment) }}"
+                                                                            data-filename="{{ basename($attachment) }}">
+                                                                    </div>
+                                                                    <div class="p-2 bg-white">
+                                                                        <p class="text-xs text-gray-700 truncate">{{ basename($attachment) }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @else
+                                                                <a href="{{ Storage::url($attachment) }}" target="_blank"
+                                                                    class="flex items-center p-2 rounded-lg hover:bg-gray-100 border border-gray-200 group transition-colors duration-150">
+                                                                    <div class="bg-indigo-100 p-1 rounded-md mr-2">
+                                                                        <i class="fas fa-file text-indigo-600 text-sm"></i>
+                                                                    </div>
+                                                                    <div class="text-xs text-gray-700 truncate group-hover:text-indigo-600">
+                                                                        {{ basename($attachment) }}
+                                                                    </div>
+                                                                </a>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
-                                    <span class="font-semibold text-gray-700">{{ $comment->user->username ?? 'Usuario' }}</span>
-                                    <span class="text-sm text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
                                 </div>
-                                <p class="text-gray-700">{{ $comment->content }}</p>
-                            </div>
                             @endforeach
+                        </div>
                         </div>
                         @else
                         <p class="text-gray-500 italic">No hay comentarios aún.</p>
@@ -178,13 +233,18 @@
                         </h3>
 
                         <div class="space-y-3">
+                            @php
+                                $priorityBadge = match($ticket->priority) {
+                                    'alta' => 'bg-red-100 text-red-800',
+                                    'media' => 'bg-yellow-100 text-yellow-800',
+                                    'baja' => 'bg-green-100 text-green-800',
+                                    'urgente' => 'bg-orange-100 text-orange-800',
+                                    default => 'bg-blue-100 text-blue-800',
+                                };
+                            @endphp
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">Prioridad:</span>
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                    @if($ticket->priority === 'alta') bg-red-100 text-red-800
-                                    @elseif($ticket->priority === 'media') bg-yellow-100 text-yellow-800
-                                    @else bg-blue-100 text-blue-800
-                                    @endif">
+                                <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $priorityBadge }}">
                                     {{ ucfirst($ticket->priority) }}
                                 </span>
                             </div>
@@ -261,3 +321,12 @@
     <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </x-app-layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const commentsContainer = document.getElementById('commentsContainerAgent');
+        if (commentsContainer) {
+            commentsContainer.scrollTop = commentsContainer.scrollHeight;
+        }
+    });
+    </script>

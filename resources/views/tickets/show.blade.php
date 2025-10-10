@@ -121,56 +121,65 @@
                         </h3>
 
                         @if($ticket->comments->count() > 0)
+                        <div id="commentsContainer" class="max-h-[60vh] overflow-y-auto pr-1">
                         <div class="space-y-4">
                             @foreach($ticket->comments as $comment)
-                            <div class="border-l-4 border-blue-500 pl-4 py-3 bg-gray-50 rounded-r-xl">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                                        {{ strtoupper(substr($comment->user->username ?? 'U', 0, 1)) }}
-                                    </div>
-                                    <span class="font-semibold text-gray-700">{{ $comment->user->username ?? 'Usuario' }}</span>
-                                    <span class="text-sm text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
-                                    @if($comment->is_internal)
-                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Nota interna</span>
-                                    @endif
-                                </div>
-                                <p class="text-gray-700">{{ $comment->content }}</p>
-
-                                @if(!empty(json_decode($comment->attachments ?? '[]', true)))
-                                <div class="mt-3 pt-3 border-t border-gray-200">
-                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Archivos adjuntos:</h4>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        @foreach(json_decode($comment->attachments, true) as $attachment)
-                                        @if(isImageFile($attachment))
-                                        <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200">
-                                            <div class="relative pb-[60%] bg-gray-100">
-                                                <img src="{{ Storage::url($attachment) }}"
-                                                    alt="{{ basename($attachment) }}"
-                                                    class="absolute inset-0 w-full h-full object-cover image-thumbnail cursor-pointer"
-                                                    data-src="{{ Storage::url($attachment) }}"
-                                                    data-filename="{{ basename($attachment) }}">
-                                            </div>
-                                            <div class="p-2 bg-white">
-                                                <p class="text-xs text-gray-700 truncate">{{ basename($attachment) }}</p>
-                                            </div>
+                                @php($isMine = (int)($comment->user_id ?? 0) === (int)auth()->id())
+                                <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
+                                    <div class="max-w-[85%] sm:max-w-[70%]">
+                                        <div class="flex items-center gap-2 mb-1 {{ $isMine ? 'justify-end' : 'justify-start' }}">
+                                            @unless($isMine)
+                                                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                                    {{ strtoupper(substr($comment->user->username ?? 'U', 0, 1)) }}
+                                                </div>
+                                                <span class="font-semibold text-gray-700">{{ $comment->user->username ?? 'Usuario' }}</span>
+                                            @endunless
+                                            <span class="text-xs text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
+                                            @if($comment->is_internal)
+                                                <span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] rounded-full">Nota interna</span>
+                                            @endif
                                         </div>
-                                        @else
-                                        <a href="{{ Storage::url($attachment) }}" target="_blank"
-                                            class="flex items-center p-2 rounded-lg hover:bg-gray-100 border border-gray-200 group transition-colors duration-150">
-                                            <div class="bg-indigo-100 p-1 rounded-md mr-2">
-                                                <i class="fas fa-file text-indigo-600 text-sm"></i>
-                                            </div>
-                                            <div class="text-xs text-gray-700 truncate group-hover:text-indigo-600">
-                                                {{ basename($attachment) }}
-                                            </div>
-                                        </a>
-                                        @endif
-                                        @endforeach
+                                        <div class="rounded-2xl px-4 py-3 shadow-sm border {{ $isMine ? 'bg-blue-100 border-blue-200 rounded-br-sm' : 'bg-gray-100 border-gray-200 rounded-bl-sm' }}">
+                                            <p class="text-gray-800 whitespace-pre-wrap">{{ $comment->content }}</p>
+
+                                            @if(!empty(json_decode($comment->attachments ?? '[]', true)))
+                                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Archivos adjuntos:</h4>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        @foreach(json_decode($comment->attachments, true) as $attachment)
+                                                            @if(isImageFile($attachment))
+                                                                <div class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all duration-200">
+                                                                    <div class="relative pb-[60%] bg-gray-100">
+                                                                        <img src="{{ Storage::url($attachment) }}"
+                                                                            alt="{{ basename($attachment) }}"
+                                                                            class="absolute inset-0 w-full h-full object-cover image-thumbnail cursor-pointer"
+                                                                            data-src="{{ Storage::url($attachment) }}"
+                                                                            data-filename="{{ basename($attachment) }}">
+                                                                    </div>
+                                                                    <div class="p-2 bg-white">
+                                                                        <p class="text-xs text-gray-700 truncate">{{ basename($attachment) }}</p>
+                                                                    </div>
+                                                                </div>
+                                                            @else
+                                                                <a href="{{ Storage::url($attachment) }}" target="_blank"
+                                                                    class="flex items-center p-2 rounded-lg hover:bg-gray-100 border border-gray-200 group transition-colors duration-150">
+                                                                    <div class="bg-indigo-100 p-1 rounded-md mr-2">
+                                                                        <i class="fas fa-file text-indigo-600 text-sm"></i>
+                                                                    </div>
+                                                                    <div class="text-xs text-gray-700 truncate group-hover:text-indigo-600">
+                                                                        {{ basename($attachment) }}
+                                                                    </div>
+                                                                </a>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                                @endif
-                            </div>
                             @endforeach
+                        </div>
                         </div>
                         @else
                         <div class="text-center py-8 text-gray-500">
@@ -333,7 +342,7 @@
     </div>
 
     <!-- Modal para imágenes -->
-    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-4xl max-h-full overflow-hidden">
             <div class="flex justify-between items-center p-4 border-b">
                 <h3 id="modal-title" class="text-lg font-semibold text-gray-800"></h3>
@@ -369,6 +378,12 @@
         const closeModalBtn = document.getElementById('closeModalBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const openNewTabBtn = document.getElementById('openNewTabBtn');
+        const commentsContainer = document.getElementById('commentsContainer');
+
+        // Auto-scroll de comentarios al final si el contenedor existe
+        if (commentsContainer) {
+            commentsContainer.scrollTop = commentsContainer.scrollHeight;
+        }
 
         thumbnails.forEach(function(thumbnail) {
             thumbnail.addEventListener('click', function() {
@@ -381,18 +396,21 @@
                 openNewTabBtn.href = imageSrc;
 
                 modal.classList.remove('hidden');
+                modal.classList.add('flex');
                 document.body.style.overflow = 'hidden';
             });
         });
 
         closeModalBtn.addEventListener('click', function() {
             modal.classList.add('hidden');
+            modal.classList.remove('flex');
             document.body.style.overflow = '';
         });
 
         modal.addEventListener('click', function(event) {
             if (event.target === modal) {
                 modal.classList.add('hidden');
+                modal.classList.remove('flex');
                 document.body.style.overflow = '';
             }
         });
@@ -400,6 +418,7 @@
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
                 modal.classList.add('hidden');
+                modal.classList.remove('flex');
                 document.body.style.overflow = '';
             }
         });

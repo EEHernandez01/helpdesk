@@ -21,7 +21,7 @@ class NewTicketCreated extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', 'broadcast'];
     }
 
     public function toMail($notifiable)
@@ -52,7 +52,11 @@ class NewTicketCreated extends Notification implements ShouldQueue
         return [
             'ticket_id' => $this->ticket->id,
             'title' => $this->ticket->title,
-            'created_by' => $this->ticket->creator->name,
+            // Para compatibilidad con la vista y lógica, guardamos ID y nombre
+            'created_by_id' => $this->ticket->created_by,
+            'created_by_name' => optional($this->ticket->creator)->name,
+            // Mantener la clave antigua por retrocompatibilidad con datos ya guardados
+            'created_by' => optional($this->ticket->creator)->name,
             'priority' => $this->ticket->priority,
             'action' => 'created'
         ];

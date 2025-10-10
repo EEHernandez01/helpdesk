@@ -68,6 +68,10 @@ Route::middleware('auth')->group(function () {
         ->name('tickets.feedback.store');
 
     // Notificaciones
+    Route::get('notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::get('notifications/{id}/go', [NotificationController::class, 'go'])
+        ->name('notifications.go');
     Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
         ->name('notifications.mark-all-read');
     Route::post('notifications/{id}/mark-read', [NotificationController::class, 'markAsRead'])

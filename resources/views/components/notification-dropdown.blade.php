@@ -15,22 +15,26 @@
             <h3 class="text-lg font-semibold text-gray-700 px-4 py-2">Notificaciones</h3>
 
             <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
-                @forelse(auth()->user()->notifications as $notification)
+                @php($notifications = auth()->user()->notifications()->latest()->limit(30)->get())
+                @forelse($notifications as $notification)
                     <div class="p-4 {{ $notification->read_at ? 'bg-white' : 'bg-blue-50' }} hover:bg-gray-50">
                         <div class="flex justify-between">
-                            <a href="{{ url('/tickets/' . $notification->data['ticket_id']) }}" class="flex-grow">
+                            <a href="{{ route('notifications.go', $notification->id) }}" class="flex-grow">
                                 <p class="text-sm text-gray-800">
-                                    @if($notification->type === 'App\Notifications\TicketStatusChanged')
-                                        El ticket #{{ $notification->data['ticket_id'] }} "{{ $notification->data['title'] }}"
-                                        ha cambiado de estado: {{ $notification->data['previous_status'] }} → {{ $notification->data['new_status'] }}
-                                    @elseif($notification->type === 'App\Notifications\TicketAssigned')
-                                        El ticket #{{ $notification->data['ticket_id'] }} "{{ $notification->data['title'] }}"
-                                        ha sido asignado a {{ $notification->data['assigned_to'] }}
-                                    @elseif($notification->type === 'App\Notifications\NewTicketComment')
-                                        Nuevo comentario en el ticket #{{ $notification->data['ticket_id'] }} por {{ $notification->data['comment_by'] }}
-                                    @elseif($notification->type === 'App\Notifications\NewTicketCreated')
-                                        Nuevo ticket #{{ $notification->data['ticket_id'] }} creado: "{{ $notification->data['title'] }}"
-                                        {!! auth()->id() === $notification->data['created_by'] ? '' : ' por ' . $notification->data['created_by'] !!}
+                                    @php($data = $notification->data ?? [])
+                                    @if($notification->type === 'App\\Notifications\\TicketStatusChanged')
+                                        El ticket #{{ $data['ticket_id'] ?? '?' }} "{{ $data['title'] ?? '' }}"
+                                        ha cambiado de estado: {{ $data['previous_status'] ?? '?' }} → {{ $data['new_status'] ?? '?' }}
+                                    @elseif($notification->type === 'App\\Notifications\\TicketAssigned')
+                                        El ticket #{{ $data['ticket_id'] ?? '?' }} "{{ $data['title'] ?? '' }}"
+                                        ha sido asignado a {{ $data['assigned_to'] ?? 'desconocido' }}
+                                    @elseif($notification->type === 'App\\Notifications\\NewTicketComment')
+                                        Nuevo comentario en el ticket #{{ $data['ticket_id'] ?? '?' }} por {{ $data['comment_by'] ?? 'alguien' }}
+                                    @elseif($notification->type === 'App\\Notifications\\NewTicketCreated')
+                                        @php($createdById = $data['created_by_id'] ?? null)
+                                        @php($createdByName = $data['created_by_name'] ?? ($data['created_by'] ?? 'alguien'))
+                                        Nuevo ticket #{{ $data['ticket_id'] ?? '?' }} creado: "{{ $data['title'] ?? '' }}"
+                                        {!! auth()->id() === $createdById ? '' : ' por ' . e($createdByName) !!}
                                     @endif
                                 </p>
                                 <p class="text-xs text-gray-500 mt-1">
@@ -63,8 +67,12 @@
                 @endforelse
             </div>
 
-            @if(auth()->user()->notifications->count() > 0)
+            @php($totalCount = auth()->user()->notifications()->count())
+            @if($totalCount > 0)
                 <div class="border-t border-gray-200 px-4 py-2 flex justify-between">
+                    <a href="{{ route('notifications.index') }}" class="text-sm text-gray-600 hover:text-gray-800">
+                        Ver todas ({{ $totalCount }})
+                    </a>
                     <form action="{{ route('notifications.mark-all-read') }}" method="POST">
                         @csrf
                         <button type="submit" class="text-sm text-blue-600 hover:text-blue-800">

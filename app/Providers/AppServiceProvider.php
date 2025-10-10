@@ -22,5 +22,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Route::aliasMiddleware('role', CheckRole::class);
+
+        // Registro de comandos de consola personalizados (si no hay Kernel dedicado)
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Console\Commands\SendTestEmail::class,
+            ]);
+        }
     }
 }

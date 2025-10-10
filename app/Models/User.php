@@ -67,4 +67,12 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Company::class, 'empresa_id');
     }
+
+    /**
+     * Canal privado para notificaciones por broadcast.
+     */
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'users.' . $this->id;
+    }
 }
