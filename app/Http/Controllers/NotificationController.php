@@ -67,4 +67,39 @@ class NotificationController extends Controller
         $user->notifications()->delete();
         return back()->with('success', 'Todas las notificaciones eliminadas');
     }
+
+    /**
+     * Endpoint JSON para polling: devuelve count de no leídas y últimas notificaciones.
+     */
+    public function poll(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $unreadCount = $user->unreadNotifications()->count();
+
+        $items = $user->notifications()
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(function ($n) {
+                $data = $n->data ?? [];
+                return [
+                    'id' => $n->id,
+                    'type' => class_basename($n->type),
+                    'data' => $data,
+                    'read_at' => $n->read_at,
+                    'created_at' => $n->created_at->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'unread' => $unreadCount,
+            'notifications' => $items,
+        ]);
+    }
 }

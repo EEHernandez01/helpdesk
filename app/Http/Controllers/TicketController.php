@@ -86,11 +86,6 @@ class TicketController extends Controller
             $agent->notify(new \App\Notifications\NewTicketCreated($ticket));
         }
 
-        // Notificar también al creador (confirmación del ticket creado)
-        if ($ticket->creator()->exists()) {
-            $ticket->creator()->first()->notify(new \App\Notifications\NewTicketCreated($ticket));
-        }
-
         $attachmentPaths = [];
 
         // 2) Guardar archivos en carpeta específica del ticket
@@ -327,7 +322,7 @@ class TicketController extends Controller
 
         $ticket->update([
             'assigned_to' => Auth::id(),
-            'status'      => 'en progreso',
+            'status'      => 'in_progress',
         ]);
 
         return redirect()

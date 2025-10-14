@@ -80,6 +80,9 @@ Route::middleware('auth')->group(function () {
         ->name('notifications.delete');
     Route::delete('notifications', [NotificationController::class, 'deleteAll'])
         ->name('notifications.delete-all');
+    // Endpoint para polling desde frontend en hosting compartido
+    Route::get('notifications/poll', [NotificationController::class, 'poll'])
+        ->name('notifications.poll');
 
     // Centro de ayuda (público)
     Route::get('help', [HelpEntryController::class, 'index'])->name('help.index');

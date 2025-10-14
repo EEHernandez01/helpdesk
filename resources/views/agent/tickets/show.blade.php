@@ -54,7 +54,9 @@
                         <div id="commentsContainerAgent" class="max-h-[60vh] overflow-y-auto pr-1">
                         <div class="space-y-4">
                             @foreach($ticket->comments as $comment)
-                                @php($isMine = (int)($comment->user_id ?? 0) === (int)auth()->id())
+                                @php
+                                    $isMine = (int)($comment->user_id ?? 0) === (int)auth()->id();
+                                @endphp
                                 <div class="flex {{ $isMine ? 'justify-end' : 'justify-start' }}">
                                     <div class="max-w-[85%] sm:max-w-[70%]">
                                         <div class="flex items-center gap-2 mb-1 {{ $isMine ? 'justify-end' : 'justify-start' }}">
@@ -124,7 +126,7 @@
                         <p class="text-gray-500 italic">No hay comentarios aún.</p>
                         @endif
                         <!-- Feedback al cerrar el ticket -->
-                        @if($ticket->status === 'cerrado' && Auth::id() === $ticket->creator->id)
+                        @if($ticket->status === 'cerrado' && $ticket->creator && Auth::id() === $ticket->creator->id)
                         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mt-6">
                             <h3 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
                                 <i class="fas fa-star text-yellow-500"></i>
@@ -234,13 +236,13 @@
 
                         <div class="space-y-3">
                             @php
-                                $priorityBadge = match($ticket->priority) {
+                                $priorityMap = [
                                     'alta' => 'bg-red-100 text-red-800',
                                     'media' => 'bg-yellow-100 text-yellow-800',
                                     'baja' => 'bg-green-100 text-green-800',
                                     'urgente' => 'bg-orange-100 text-orange-800',
-                                    default => 'bg-blue-100 text-blue-800',
-                                };
+                                ];
+                                $priorityBadge = $priorityMap[$ticket->priority] ?? 'bg-blue-100 text-blue-800';
                             @endphp
                             <div class="flex justify-between items-center">
                                 <span class="text-gray-600">Prioridad:</span>
@@ -291,6 +293,18 @@
                             @endif
                         </div>
                     </div>
+
+                    @if($ticket->status === 'cerrado' && !empty($ticket->resolution_notes))
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            Nota de Resolución
+                        </h3>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-gray-800 whitespace-pre-wrap">{{ $ticket->resolution_notes }}</p>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Acciones rápidas -->
                     <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6">

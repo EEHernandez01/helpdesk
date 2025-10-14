@@ -68,4 +68,17 @@ class CompanyHelper
             return asset('favicon.ico');
         }
     }
+
+    /**
+     * Verificar si un archivo es una imagen basado en su extensión
+     */
+    public static function isImageFile($filename)
+    {
+        if (empty($filename)) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    }
 }

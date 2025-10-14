@@ -12,6 +12,8 @@
     <meta name="pusher-cluster" content="{{ env('PUSHER_APP_CLUSTER', 'mt1') }}">
     <meta name="reverb-host" content="{{ env('REVERB_HOST','127.0.0.1') }}">
     <meta name="reverb-port" content="{{ env('REVERB_PORT','6001') }}">
+    <meta name="notifications-poll-url" content="{{ route('notifications.poll') }}">
+    <meta name="notifications-poll-interval" content="5000">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
     <!-- Favicon -->
@@ -24,6 +26,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Fallback: script de polling para hosting compartido (si no puedes compilar assets) -->
+    <script src="/js/polling-notifications.js" defer></script>
 </head>
 
 <body class="font-sans antialiased">
