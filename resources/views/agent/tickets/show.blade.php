@@ -201,30 +201,42 @@
                             Estado del Ticket
                         </h3>
 
-                        <form action="{{ route('agent.tickets.update', $ticket) }}" method="POST" class="space-y-4">
-                            @csrf
-                            @method('PUT')
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="abierto" {{ $ticket->status === 'abierto' ? 'selected' : '' }}>Abierto</option>
-                                    <option value="en progreso" {{ $ticket->status === 'en progreso' ? 'selected' : '' }}>En Progreso</option>
-                                    <option value="resuelto" {{ $ticket->status === 'resuelto' ? 'selected' : '' }}>Resuelto</option>
-                                    <option value="cerrado" {{ $ticket->status === 'cerrado' ? 'selected' : '' }}>Cerrado</option>
-                                </select>
+                        @if($ticket->status === 'cerrado')
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                                    <div class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 font-semibold">
+                                        Cerrado
+                                    </div>
+                                </div>
                             </div>
+                            <!-- La sección de nota de resolución se muestra abajo en el panel lateral -->
+                        @else
+                            <form action="{{ route('agent.tickets.update', $ticket) }}" method="POST" class="space-y-4">
+                                @csrf
+                                @method('PUT')
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Notas de Resolución</label>
-                                <textarea name="resolution_notes" rows="4" placeholder="Agrega notas sobre la resolución..."
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">{{ $ticket->resolution_notes }}</textarea>
-                            </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                                    <select name="status" id="statusSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="abierto" {{ $ticket->status === 'abierto' ? 'selected' : '' }}>Abierto</option>
+                                        <option value="en progreso" {{ $ticket->status === 'en progreso' ? 'selected' : '' }}>En Progreso</option>
+                                        <option value="resuelto" {{ $ticket->status === 'resuelto' ? 'selected' : '' }}>Resuelto</option>
+                                        <option value="cerrado" {{ $ticket->status === 'cerrado' ? 'selected' : '' }}>Cerrado</option>
+                                    </select>
+                                </div>
 
-                            <button type="submit" class="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold">
-                                <i class="fas fa-save mr-2"></i>Actualizar Estado
-                            </button>
-                        </form>
+                                <div id="resolutionNotesDiv" style="display: none;">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Notas de Resolución</label>
+                                    <textarea name="resolution_notes" rows="4" placeholder="Agrega notas sobre la resolución..."
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none">{{ $ticket->resolution_notes }}</textarea>
+                                </div>
+
+                                <button type="submit" class="w-full px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold">
+                                    <i class="fas fa-save mr-2"></i>Actualizar Estado
+                                </button>
+                            </form>
+                        @endif
                     </div>
 
                     <!-- Información del ticket -->
@@ -341,6 +353,27 @@
         const commentsContainer = document.getElementById('commentsContainerAgent');
         if (commentsContainer) {
             commentsContainer.scrollTop = commentsContainer.scrollHeight;
+        }
+
+        // Mostrar/ocultar campo de notas de resolución basado en el estado seleccionado
+        const statusSelect = document.getElementById('statusSelect');
+        const resolutionNotesDiv = document.getElementById('resolutionNotesDiv');
+
+        if (statusSelect && resolutionNotesDiv) {
+            // Función para toggle
+            function toggleResolutionNotes() {
+                if (statusSelect.value === 'cerrado') {
+                    resolutionNotesDiv.style.display = 'block';
+                } else {
+                    resolutionNotesDiv.style.display = 'none';
+                }
+            }
+
+            // Evento de cambio
+            statusSelect.addEventListener('change', toggleResolutionNotes);
+
+            // Inicial check
+            toggleResolutionNotes();
         }
     });
     </script>
