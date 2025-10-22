@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -11,10 +12,8 @@ class FeedbackController extends Controller
     public function index(Request $request)
     {
         $query = TicketFeedback::with(['ticket', 'user']);
-
-        // Filtros
         if ($request->filled('agent_id')) {
-            $query->whereHas('ticket', function($q) use ($request) {
+            $query->whereHas('ticket', function ($q) use ($request) {
                 $q->where('assigned_to', $request->agent_id);
             });
         }
@@ -37,7 +36,7 @@ class FeedbackController extends Controller
     {
         $query = TicketFeedback::with(['ticket', 'user']);
         if ($request->filled('agent_id')) {
-            $query->whereHas('ticket', function($q) use ($request) {
+            $query->whereHas('ticket', function ($q) use ($request) {
                 $q->where('assigned_to', $request->agent_id);
             });
         }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
@@ -9,23 +10,18 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
-    // Mostrar perfil de usuario
     public function show($id)
     {
         $user = User::with(['department', 'company', 'pc', 'tickets'])->findOrFail($id);
-    return view('users.show', compact('user'));
+        return view('users.show', compact('user'));
     }
-
-    // Editar usuario
     public function edit($id)
     {
         $user = User::findOrFail($id);
         $departments = Department::all();
         $companies = Company::all();
-    return view('users.edit', compact('user', 'departments', 'companies'));
+        return view('users.edit', compact('user', 'departments', 'companies'));
     }
-
-    // Actualizar usuario (sin eliminar)
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);

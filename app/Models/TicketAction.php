@@ -10,8 +10,8 @@ class TicketAction extends Model
     protected $fillable = [
         'ticket_id',
         'user_id',
-        'action_type', // Ej: asignado, estado cambiado, comentario, resuelto, cerrado
-        'description', // Detalle de la acción
+        'action_type',
+        'description',
     ];
 
     public function ticket(): BelongsTo

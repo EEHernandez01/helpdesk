@@ -17,10 +17,6 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         HelpEntry::class => HelpEntryPolicy::class,
     ];
-
-    /**
-     * Register any authentication / authorization services.
-     */
     public function boot(): void
     {
         $this->registerPolicies();

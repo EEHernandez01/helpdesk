@@ -11,20 +11,10 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
     public function create(): View|RedirectResponse
     {
-        // if (Auth::check()) {
-        //     return redirect()->route('dashboard');
-        // }
         return view('auth.login');
     }
-
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(Request $request)
     {
         $credentials = $request->validate([
@@ -40,11 +30,6 @@ class AuthenticatedSessionController extends Controller
 
         return back()->with('error', 'Las credenciales proporcionadas son incorrectas.');
     }
-
-
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();

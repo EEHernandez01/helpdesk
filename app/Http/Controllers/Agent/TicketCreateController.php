@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
@@ -38,7 +39,16 @@ class TicketCreateController extends Controller
             'department_id' => $request->department_id,
             'category_id' => $request->category_id,
             'created_by' => $request->user_id,
-            'created_by_agent' => Auth::id(), // Nuevo campo para saber qué agente lo creó
+            'assigned_to' => Auth::id(),
+            'created_by_agent' => Auth::id(),
+        ]);
+
+        // Registrar autoasignación en el historial
+        \App\Models\TicketAction::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'action_type' => 'asignado',
+            'description' => 'Ticket autoasignado al agente creador',
         ]);
 
         return redirect()->route('agent.tickets.show', $ticket)->with('success', 'Ticket creado y asignado correctamente.');

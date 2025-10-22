@@ -4,7 +4,6 @@
             {{ __('Editar Empresa') }}
         </h2>
     </x-slot>
-
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -15,7 +14,6 @@
                         @method('PUT')
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Logo actual -->
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Logo Actual
@@ -34,17 +32,15 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Subir nuevo logo -->
                             <div class="md:col-span-2">
                                 <label for="logo" class="block text-sm font-medium text-gray-700 mb-2">
                                     Cambiar Logo
                                 </label>
                                 <input type="file"
-                                     id="logo"
-                                     name="logo"
-                                     accept="image/*,.svg"
-                                     class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                    id="logo"
+                                    name="logo"
+                                    accept="image/*,.svg"
+                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                                 <p class="mt-1 text-xs text-gray-500">
                                     Formatos permitidos: JPEG, PNG, JPG, GIF, SVG. Tamaño máximo: 2MB
                                 </p>
@@ -52,8 +48,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
-                            <!-- Favicon actual -->
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Favicon Actual
@@ -71,17 +65,15 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Subir nuevo favicon -->
                             <div class="md:col-span-2">
                                 <label for="favicon" class="block text-sm font-medium text-gray-700 mb-2">
                                     Cambiar Favicon
                                 </label>
                                 <input type="file"
-                                     id="favicon"
-                                     name="favicon"
-                                     accept="image/*,.svg,.ico"
-                                     class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                    id="favicon"
+                                    name="favicon"
+                                    accept="image/*,.svg,.ico"
+                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                                 <p class="mt-1 text-xs text-gray-500">
                                     Formatos permitidos: JPEG, PNG, JPG, GIF, SVG, ICO. Tamaño máximo: 1MB.
                                     <br>Recomendado: 16x16, 32x32 o 64x64 píxeles
@@ -90,7 +82,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- Nombre -->
                             <div>
                                 <label for="nombre" class="block text-sm font-medium text-gray-700 mb-2">
@@ -106,7 +97,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- Email -->
                             <div>
                                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
@@ -121,7 +111,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- Teléfono -->
                             <div>
                                 <label for="telefono" class="block text-sm font-medium text-gray-700 mb-2">
@@ -136,7 +125,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- RFC -->
                             <div>
                                 <label for="rfc" class="block text-sm font-medium text-gray-700 mb-2">
@@ -152,7 +140,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- Dirección -->
                             <div>
                                 <label for="direccion" class="block text-sm font-medium text-gray-700 mb-2">
@@ -167,7 +154,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- Ciudad -->
                             <div>
                                 <label for="ciudad" class="block text-sm font-medium text-gray-700 mb-2">
@@ -182,7 +168,6 @@
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-
                             <!-- Estado -->
                             <div class="md:col-span-2">
                                 <label class="flex items-center">
@@ -195,7 +180,6 @@
                                 </label>
                             </div>
                         </div>
-
                         <div class="flex items-center justify-end space-x-4">
                             <a href="{{ route('admin.companies.index') }}"
                                 class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

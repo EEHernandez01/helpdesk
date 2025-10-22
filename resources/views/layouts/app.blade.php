@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @auth
-        <meta name="user-id" content="{{ auth()->id() }}">
+    <meta name="user-id" content="{{ auth()->id() }}">
     @endauth
     <meta name="pusher-key" content="{{ env('PUSHER_APP_KEY','local-key') }}">
     <meta name="pusher-cluster" content="{{ env('PUSHER_APP_CLUSTER', 'mt1') }}">
@@ -28,6 +28,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Fallback: script de polling para hosting compartido (si no puedes compilar assets) -->
     <script src="/js/polling-notifications.js" defer></script>
+    <!-- Iconos de FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body class="font-sans antialiased">

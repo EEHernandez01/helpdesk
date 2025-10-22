@@ -11,21 +11,17 @@ use App\Models\Ticket;
 class TicketStatusChanged extends Notification implements ShouldQueue
 {
     use Queueable;
-
     protected $ticket;
     protected $previousStatus;
-
     public function __construct(Ticket $ticket, $previousStatus)
     {
         $this->ticket = $ticket;
         $this->previousStatus = $previousStatus;
     }
-
     public function via($notifiable)
     {
         return ['database', 'mail', 'broadcast'];
     }
-
     public function toMail($notifiable)
     {
         $statusTranslations = [
@@ -48,7 +44,6 @@ class TicketStatusChanged extends Notification implements ShouldQueue
                 'url' => url("/tickets/{$this->ticket->id}")
             ]);
     }
-
     public function toArray($notifiable)
     {
         return [

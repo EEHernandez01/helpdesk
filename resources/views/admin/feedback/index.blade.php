@@ -10,7 +10,7 @@
             <select name="agent_id" class="px-4 py-2 border rounded-lg">
                 <option value="">Todos</option>
                 @foreach($agents as $agent)
-                    <option value="{{ $agent->id }}" {{ request('agent_id') == $agent->id ? 'selected' : '' }}>{{ $agent->username }}</option>
+                <option value="{{ $agent->id }}" {{ request('agent_id') == $agent->id ? 'selected' : '' }}>{{ $agent->username }}</option>
                 @endforeach
             </select>
         </div>

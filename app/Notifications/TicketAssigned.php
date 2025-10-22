@@ -12,21 +12,17 @@ use App\Models\User;
 class TicketAssigned extends Notification implements ShouldQueue
 {
     use Queueable;
-
     protected $ticket;
     protected $assignedTo;
-
     public function __construct(Ticket $ticket, User $assignedTo)
     {
         $this->ticket = $ticket;
         $this->assignedTo = $assignedTo;
     }
-
     public function via($notifiable)
     {
         return ['database', 'mail', 'broadcast'];
     }
-
     public function toMail($notifiable)
     {
         return (new MailMessage)
@@ -36,7 +32,6 @@ class TicketAssigned extends Notification implements ShouldQueue
             ->action('Ver Ticket', url("/tickets/{$this->ticket->id}"))
             ->line('Si tienes alguna pregunta, no dudes en responder a este correo.');
     }
-
     public function toArray($notifiable)
     {
         return [
@@ -46,7 +41,6 @@ class TicketAssigned extends Notification implements ShouldQueue
             'action' => 'assigned'
         ];
     }
-
     protected function getMessageLine($notifiable)
     {
         if ($notifiable->id === $this->assignedTo->id) {

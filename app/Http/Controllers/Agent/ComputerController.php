@@ -12,7 +12,6 @@ class ComputerController extends Controller
     {
         $query = Computer::query();
 
-        // Filtros de búsqueda
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -25,14 +24,12 @@ class ComputerController extends Controller
             $query->where('processor', 'like', "%{$request->processor}%");
         }
 
-        // Búsqueda por empresa
         if ($request->filled('company')) {
             $query->whereHas('company', function($q) use ($request) {
                 $q->where('nombre', 'like', "%{$request->company}%");
             });
         }
 
-        // Búsqueda por departamento
         if ($request->filled('department')) {
             $query->whereHas('department', function($q) use ($request) {
                 $q->where('name', 'like', "%{$request->department}%");
@@ -61,7 +58,6 @@ class ComputerController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            // otros campos...
         ]);
 
         $computer->update($data);

@@ -22,10 +22,6 @@ class Company extends Model
     {
         return $this->hasMany(User::class);
     }
-
-    /**
-     * Obtener la URL del logo de la empresa
-     */
     public function getLogoUrlAttribute()
     {
         if ($this->logo) {
@@ -33,17 +29,11 @@ class Company extends Model
         }
         return asset('logo.svg');
     }
-
-    /**
-     * Obtener la URL del favicon de la empresa
-     */
     public function getFaviconUrlAttribute()
     {
         if ($this->favicon) {
             return asset('storage/app/public/favicons/' . $this->favicon);
         }
-
-        // Si no tiene favicon específico, usar el logo como fallback
         if ($this->logo) {
             return asset('storage/app/public/logos/' . $this->logo);
         }

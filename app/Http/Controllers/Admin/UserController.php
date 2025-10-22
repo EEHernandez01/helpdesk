@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Admin/UserController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -15,28 +14,19 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the users.
-     */
     public function index()
     {
         $query = User::with('company');
-
-        // Filtro de búsqueda
         if (request('search')) {
             $search = strtolower(request('search'));
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"])
-                  ->orWhereRaw('LOWER(email) LIKE ?', ["%{$search}%"]);
+                    ->orWhereRaw('LOWER(email) LIKE ?', ["%{$search}%"]);
             });
         }
-
-        // Filtro de rol
         if (request('role')) {
             $query->where('role', request('role'));
         }
-
-        // Filtro de estado
         if (request('status')) {
             $query->where('status', request('status'));
         }
@@ -44,12 +34,6 @@ class UserController extends Controller
         $users = $query->paginate(10)->appends(request()->query());
         return view('admin.users.index', compact('users'));
     }
-
-    /**
-     * Show the form for creating a new user.
-     */
-
-
     public function create()
     {
         $computers = Computer::all();
@@ -57,11 +41,6 @@ class UserController extends Controller
         $departments = Department::all();
         return view('admin.users.create', compact('computers', 'companies', 'departments'));
     }
-
-
-    /**
-     * Store a newly created user in storage.
-     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -78,7 +57,6 @@ class UserController extends Controller
             'empresa_id'    => 'nullable|exists:companies,id',
         ]);
 
-        // Convert is_online to boolean
         if (isset($data['is_online'])) {
             $data['is_online'] = (bool) $data['is_online'];
         }
@@ -90,25 +68,18 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')
             ->with('success', 'Usuario creado correctamente.');
     }
-
-    /**
-     * Show the form for editing the specified user.
-     */
     public function edit(User $user)
     {
         $companies = Company::all();
         $departments = Department::all();
         $computers = Computer::all();
-    return view('users.edit', compact('user', 'companies', 'departments', 'computers'));
+        return view('users.edit', compact('user', 'companies', 'departments', 'computers'));
     }
     public function show($id)
     {
         $user = User::with('pc')->findOrFail($id);
-    return view('users.show', compact('user'));
+        return view('users.show', compact('user'));
     }
-    /**
-     * Update the specified user in storage.
-     */
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
@@ -128,8 +99,6 @@ class UserController extends Controller
 
         $fieldsToAudit = ['name', 'department_id', 'password'];
         $original = $user->getOriginal();
-
-        // Auditoría de cambios
         foreach ($fieldsToAudit as $field) {
             if ($field === 'password' && !empty($data['password'])) {
                 $oldValue = '***';
@@ -154,33 +123,20 @@ class UserController extends Controller
                 ]);
             }
         }
-
-        // Convert is_online to boolean
         if (isset($data['is_online'])) {
             $data['is_online'] = (bool) $data['is_online'];
         }
-
         $user->fill(collect($data)->except(['password', 'computers'])->toArray());
         $user->save();
-
-        // Asignación de equipos de cómputo
         $selectedComputers = $request->input('computers', []);
-
-        // Desasignar los equipos que ya no están seleccionados
         $desasignados = Computer::where('assigned_user_id', $user->id)
             ->whereNotIn('id', $selectedComputers)
             ->update(['assigned_user_id' => null]);
-
-        // Asignar los equipos seleccionados
         $asignados = Computer::whereIn('id', $selectedComputers)
             ->update(['assigned_user_id' => $user->id]);
         return redirect()->route('admin.users.index')
             ->with('success', 'Usuario actualizado correctamente.');
     }
-
-    /**
-     * Remove the specified user from storage.
-     */
     public function destroy(User $user)
     {
         $user->delete();

@@ -24,7 +24,12 @@ class NewTicketComment extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'mail', 'broadcast'];
+        $channels = ['database', 'mail', 'broadcast'];
+        if (!empty($this->skipDatabase)) {
+            return array_values(array_diff($channels, ['database']));
+        }
+
+        return $channels;
     }
 
     public function toMail($notifiable)

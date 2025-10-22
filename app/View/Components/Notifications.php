@@ -11,7 +11,6 @@ class Notifications extends Component
 
     public function __construct()
     {
-        // Asume que tienes un modelo de Notificación
         $this->notifications = Notification::recent()->limit(2)->get();
     }
 

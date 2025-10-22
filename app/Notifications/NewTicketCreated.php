@@ -13,6 +13,9 @@ class NewTicketCreated extends Notification implements ShouldQueue
     use Queueable;
 
     protected $ticket;
+    // Cuando true, omitimos el canal 'database' para evitar duplicados cuando el DB
+    // ya se insertó manualmente y solo queremos enviar el correo desde un Job.
+    public $skipDatabase = false;
 
     public function __construct(Ticket $ticket)
     {
@@ -21,7 +24,12 @@ class NewTicketCreated extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database', 'mail', 'broadcast'];
+        $channels = ['database', 'mail', 'broadcast'];
+        if (!empty($this->skipDatabase)) {
+            return array_values(array_diff($channels, ['database']));
+        }
+
+        return $channels;
     }
 
     public function toMail($notifiable)
@@ -33,18 +41,17 @@ class NewTicketCreated extends Notification implements ShouldQueue
         // Si el notifiable es el creador
         if ($notifiable->id === $this->ticket->created_by) {
             $message->line("Tu ticket ha sido creado exitosamente:")
-                   ->line("Título: {$this->ticket->title}")
-                   ->line("Prioridad: {$this->ticket->priority}");
+                ->line("Título: {$this->ticket->title}")
+                ->line("Prioridad: {$this->ticket->priority}");
         } else {
-            // Si es un administrador o agente
             $message->line("Se ha creado un nuevo ticket:")
-                   ->line("Título: {$this->ticket->title}")
-                   ->line("Creado por: {$this->ticket->creator->name}")
-                   ->line("Prioridad: {$this->ticket->priority}");
+                ->line("Título: {$this->ticket->title}")
+                ->line("Creado por: {$this->ticket->creator->name}")
+                ->line("Prioridad: {$this->ticket->priority}");
         }
 
         return $message->action('Ver Ticket', url("/tickets/{$this->ticket->id}"))
-                      ->line('Si tienes alguna pregunta, no dudes en responder a este correo.');
+            ->line('Si tienes alguna pregunta, no dudes en responder a este correo.');
     }
 
     public function toArray($notifiable)
@@ -52,10 +59,8 @@ class NewTicketCreated extends Notification implements ShouldQueue
         return [
             'ticket_id' => $this->ticket->id,
             'title' => $this->ticket->title,
-            // Para compatibilidad con la vista y lógica, guardamos ID y nombre
             'created_by_id' => $this->ticket->created_by,
             'created_by_name' => optional($this->ticket->creator)->name,
-            // Mantener la clave antigua por retrocompatibilidad con datos ya guardados
             'created_by' => optional($this->ticket->creator)->name,
             'priority' => $this->ticket->priority,
             'action' => 'created'
