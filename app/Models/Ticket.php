@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Department;
 use App\Models\Category;
+use App\Models\TicketComment;
+use App\Models\TicketFeedback;
 
 class Ticket extends Model
 {
@@ -63,6 +65,12 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketComment::class);
     }
+
+    public function feedback()
+    {
+        return $this->hasMany(TicketFeedback::class);
+    }
+
     public function getStatusLabelAttribute()
     {
         return match ($this->status) {

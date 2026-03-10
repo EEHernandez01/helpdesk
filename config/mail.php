@@ -95,6 +95,11 @@ return [
             ],
         ],
 
+        // Graph API mailer (Microsoft Graph)
+        'graph' => [
+            'transport' => 'graph',
+        ],
+
     ],
 
     /*

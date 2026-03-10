@@ -21,6 +21,12 @@ use App\Http\Controllers\TicketFeedbackController;
 use App\Http\Controllers\Agent\TicketCreateController;
 use App\Http\Controllers\NotificationController;
 
+
+Route::get('/clear-cache', function() {
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+    return 'Cache limpiado ✓';
+});
 // Redirección inicial
 Route::get('/', fn() => redirect('login'));
 

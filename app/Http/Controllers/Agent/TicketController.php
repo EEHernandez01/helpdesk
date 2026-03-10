@@ -16,7 +16,7 @@ class TicketController extends Controller
         $user = Auth::user();
 
         $assignedTickets = Ticket::where('assigned_to', $user->id)
-            ->with('creator', 'department', 'category')
+            ->with('creator', 'department', 'category', 'comments')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -67,7 +67,7 @@ class TicketController extends Controller
     {
         $availableTickets = Ticket::whereNull('assigned_to')
             ->where('status', '!=', 'cerrado')
-            ->with('creator', 'department', 'category')
+            ->with('creator', 'department', 'category', 'comments')
             ->orderBy('priority', 'desc')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -81,50 +81,71 @@ class TicketController extends Controller
             return back()->with('error', 'Este ticket ya está asignado a otro agente.');
         }
 
-        $ticket->update([
-            'assigned_to' => Auth::id(),
-            'status' => 'en progreso',
-        ]);
+        try {
+            \DB::beginTransaction();
 
-        TicketAction::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'action_type' => 'asignado',
-            'description' => 'Ticket asignado al agente',
-        ]);
+            $ticket->update([
+                'assigned_to' => Auth::id(),
+                'status' => 'en progreso',
+            ]);
 
-        return redirect()
-            ->route('agent.tickets.show', $ticket)
-            ->with('success', 'Ticket asignado correctamente.');
+            TicketAction::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'action_type' => 'asignado',
+                'description' => 'Ticket asignado al agente',
+            ]);
+
+            \DB::commit();
+
+            return redirect()
+                ->route('agent.tickets.show', $ticket)
+                ->with('success', 'Ticket asignado correctamente.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al asignar ticket: ' . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al asignar el ticket. Intenta de nuevo.');
+        }
     }
 
     public function next()
     {
-        $ticket = Ticket::whereNull('assigned_to')
-            ->where('status', '!=', 'cerrado')
-            ->orderBy('priority', 'desc')
-            ->orderBy('created_at', 'asc')
-            ->first();
+        try {
+            \DB::beginTransaction();
 
-        if (!$ticket) {
-            return back()->with('error', 'No hay tickets disponibles para asignar.');
+            $ticket = Ticket::whereNull('assigned_to')
+                ->where('status', '!=', 'cerrado')
+                ->orderBy('priority', 'desc')
+                ->orderBy('created_at', 'asc')
+                ->first();
+
+            if (!$ticket) {
+                \DB::rollBack();
+                return back()->with('error', 'No hay tickets disponibles para asignar.');
+            }
+
+            $ticket->update([
+                'assigned_to' => Auth::id(),
+                'status' => 'en progreso',
+            ]);
+
+            TicketAction::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'action_type' => 'asignado',
+                'description' => 'Ticket asignado automáticamente al agente',
+            ]);
+
+            \DB::commit();
+
+            return redirect()
+                ->route('agent.tickets.show', $ticket)
+                ->with('success', 'Ticket asignado automáticamente.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al asignar siguiente ticket: ' . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al asignar el ticket. Intenta de nuevo.');
         }
-
-        $ticket->update([
-            'assigned_to' => Auth::id(),
-            'status' => 'en progreso',
-        ]);
-
-        TicketAction::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'action_type' => 'asignado',
-            'description' => 'Ticket asignado automáticamente al agente',
-        ]);
-
-        return redirect()
-            ->route('agent.tickets.show', $ticket)
-            ->with('success', 'Ticket asignado automáticamente.');
     }
 
     public function release(Ticket $ticket)
@@ -133,21 +154,31 @@ class TicketController extends Controller
             abort(403, 'No tienes acceso a este ticket.');
         }
 
-        $ticket->update([
-            'assigned_to' => null,
-            'status' => 'abierto',
-        ]);
+        try {
+            \DB::beginTransaction();
 
-        TicketAction::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'action_type' => 'liberado',
-            'description' => 'Ticket liberado por el agente',
-        ]);
+            $ticket->update([
+                'assigned_to' => null,
+                'status' => 'abierto',
+            ]);
 
-        return redirect()
-            ->route('agent.tickets.index')
-            ->with('success', 'Ticket liberado correctamente.');
+            TicketAction::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => Auth::id(),
+                'action_type' => 'liberado',
+                'description' => 'Ticket liberado por el agente',
+            ]);
+
+            \DB::commit();
+
+            return redirect()
+                ->route('agent.tickets.index')
+                ->with('success', 'Ticket liberado correctamente.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al liberar ticket: ' . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al liberar el ticket. Intenta de nuevo.');
+        }
     }
 
     public function addToPending(Request $request)
@@ -162,26 +193,44 @@ class TicketController extends Controller
             return back()->with('error', 'Formato de datos inválido.');
         }
 
-        $tickets = Ticket::whereIn('id', $ticketIds)
-            ->whereNull('assigned_to')
-            ->where('status', '!=', 'cerrado')
-            ->get();
+        try {
+            \DB::beginTransaction();
 
-        if ($tickets->isEmpty()) {
-            return back()->with('error', 'No se encontraron tickets válidos para agregar a pendientes.');
+            $tickets = Ticket::whereIn('id', $ticketIds)
+                ->whereNull('assigned_to')
+                ->where('status', '!=', 'cerrado')
+                ->get();
+
+            if ($tickets->isEmpty()) {
+                \DB::rollBack();
+                return back()->with('error', 'No se encontraron tickets válidos para agregar a pendientes.');
+            }
+
+            foreach ($tickets as $ticket) {
+                $ticket->update([
+                    'assigned_to' => Auth::id(),
+                    'status' => 'abierto',
+                ]);
+
+                TicketAction::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => Auth::id(),
+                    'action_type' => 'agregado a pendientes',
+                    'description' => 'Ticket agregado a pendientes por asignación en lote',
+                ]);
+            }
+
+            \DB::commit();
+
+            $count = $tickets->count();
+            return redirect()
+                ->route('agent.tickets.index')
+                ->with('success', "{$count} tickets agregados a tus pendientes correctamente.");
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al agregar tickets a pendientes: ' . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al procesar los tickets. Intenta de nuevo.');
         }
-
-        foreach ($tickets as $ticket) {
-            $ticket->update([
-                'assigned_to' => Auth::id(),
-                'status' => 'abierto',
-            ]);
-        }
-
-        $count = $tickets->count();
-        return redirect()
-            ->route('agent.tickets.index')
-            ->with('success', "{$count} tickets agregados a tus pendientes correctamente.");
     }
 
     public function assignMultiple(Request $request)
@@ -196,25 +245,43 @@ class TicketController extends Controller
             return back()->with('error', 'Formato de datos inválido.');
         }
 
-        $tickets = Ticket::whereIn('id', $ticketIds)
-            ->whereNull('assigned_to')
-            ->where('status', '!=', 'cerrado')
-            ->get();
+        try {
+            \DB::beginTransaction();
 
-        if ($tickets->isEmpty()) {
-            return back()->with('error', 'No se encontraron tickets válidos para asignar.');
+            $tickets = Ticket::whereIn('id', $ticketIds)
+                ->whereNull('assigned_to')
+                ->where('status', '!=', 'cerrado')
+                ->get();
+
+            if ($tickets->isEmpty()) {
+                \DB::rollBack();
+                return back()->with('error', 'No se encontraron tickets válidos para asignar.');
+            }
+
+            foreach ($tickets as $ticket) {
+                $ticket->update([
+                    'assigned_to' => Auth::id(),
+                    'status' => 'en progreso',
+                ]);
+
+                TicketAction::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => Auth::id(),
+                    'action_type' => 'asignado',
+                    'description' => 'Ticket asignado al agente por asignación en lote',
+                ]);
+            }
+
+            \DB::commit();
+
+            $count = $tickets->count();
+            return redirect()
+                ->route('agent.tickets.index')
+                ->with('success', "{$count} tickets asignados correctamente.");
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al asignar tickets en lote: ' . $e->getMessage());
+            return back()->with('error', 'Ocurrió un error al procesar los tickets. Intenta de nuevo.');
         }
-
-        foreach ($tickets as $ticket) {
-            $ticket->update([
-                'assigned_to' => Auth::id(),
-                'status' => 'en progreso',
-            ]);
-        }
-
-        $count = $tickets->count();
-        return redirect()
-            ->route('agent.tickets.index')
-            ->with('success', "{$count} tickets asignados correctamente.");
     }
 }

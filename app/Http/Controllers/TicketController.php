@@ -15,7 +15,7 @@ class TicketController extends Controller
     // Mostrar solo los tickets del usuario autenticado
     public function index()
     {
-        $query = Ticket::with('creator', 'assignedTo', 'department', 'category');
+        $query = Ticket::with('creator', 'assignedTo', 'department', 'category', 'comments');
 
         // Filtrar según el rol del usuario
         if (Auth::user()->role === 'admin') {
@@ -115,7 +115,7 @@ class TicketController extends Controller
     // Mostrar detalles de un ticket (solo si el usuario lo creó o es admin/agente)
     public function show($id)
     {
-        $ticket = Ticket::with('creator', 'assignedTo', 'department', 'category')->findOrFail($id);
+        $ticket = Ticket::with('creator', 'assignedTo', 'department', 'category', 'comments.user')->findOrFail($id);
 
         // Admin y agentes pueden ver todos los tickets
         if (Auth::user()->role === 'admin' || Auth::user()->role === 'agent') {

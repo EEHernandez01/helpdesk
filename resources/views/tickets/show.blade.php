@@ -47,10 +47,6 @@
 
                     @php
                     $attachments = json_decode($ticket->attachments, true);
-                    function isImageFile($filename) {
-                        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                        return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
-                    }
                     @endphp
 
                     @if(!empty($attachments))

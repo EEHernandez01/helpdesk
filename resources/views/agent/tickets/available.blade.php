@@ -215,7 +215,7 @@
                                                 Pendiente
                                             </button>
                                         </form>
-                                        <a href="{{ route('tickets.show', $ticket) }}" class="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium">
+                                        <a href="{{ route('agent.tickets.show', $ticket) }}" class="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium">
                                             <i class="fas fa-eye"></i>
                                             Ver
                                         </a>

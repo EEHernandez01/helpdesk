@@ -20,7 +20,7 @@ class Company extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'empresa_id');
     }
     public function getLogoUrlAttribute()
     {

@@ -12,7 +12,10 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        $assignedTickets = Ticket::where('assigned_to', $user->id)->latest()->get();
+        $assignedTickets = Ticket::where('assigned_to', $user->id)
+            ->with('creator', 'department', 'category', 'comments')
+            ->latest()
+            ->get();
 
             $soonDueTickets = $assignedTickets->filter(function($ticket) {
                 return isset($ticket->due_date) && $ticket->status !== 'cerrado' && now()->diffInHours($ticket->due_date, false) <= 24 && now()->lt($ticket->due_date);
@@ -24,7 +27,7 @@ class DashboardController extends Controller
 
         $availableTickets = Ticket::whereNull('assigned_to')
             ->where('status', '!=', 'cerrado')
-            ->with('creator', 'department', 'category')
+            ->with('creator', 'department', 'category', 'comments')
             ->orderBy('priority', 'desc')
             ->orderBy('created_at', 'asc')
             ->get();
